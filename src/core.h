@@ -91,4 +91,8 @@ uint16_t* core_get_raw_data_pntr (void);
 uint32_t core_get_raw_data_size (void);
 uint32_t core_get_enabled_ch (void);
 void core_clear_avg_acuum (void);
+	#if ADC_CORE_DEBUG == 1
+	void pio_init (void);
+	#endif
+void validate_settings (daq_settings_t *settings);
 #endif /* CORE_H_ */

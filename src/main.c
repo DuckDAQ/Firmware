@@ -67,6 +67,7 @@ void print_data (void)
 	{
 		if(master_settings.channels & (1 << n))
 		{
+			//Warning		format '%u' expects argument of type 'unsigned int', but argument 3 has type 'long unsigned int' [-Wformat=]
 			chars += sprintf(str, "CH%u: %u\n\r", n + 1, calc_data.results[n]); 
 		}
 	}
@@ -83,8 +84,10 @@ void debug_copy_data (void)
 
 void calculate_data (void)
 {
+	//Warning		assignment from incompatible pointer type [-Wincompatible-pointer-types]
 	uint32_t* raw_data_ptr;
-	uint32_t n, m = 0;
+	uint32_t n=0;
+	//uint32_t m = 0;
 	raw_data_ptr = core_get_raw_data_pntr();
 	for(n = 0; n < 4; n++)
 	{
