@@ -8,7 +8,9 @@
 #include "core.h"
 #include "parser.h"
 
+//PDC(peripheral DMA controller) data packet for transfer. Nastavimo mu start in size
 pdc_packet_t adc_pdc1, adc_pdc2;
+//Pdc hardware registers
 Pdc *adc_pdc_pntr;
 
 uint16_t adc_raw_data1 [ADC_RAW_DATA_SIZE];
@@ -18,11 +20,11 @@ volatile uint32_t rep_cntr, new_data = 0, acqusition_in_progress = 0, data_bank 
 uint32_t raw_data_size;
 uint32_t nb_enables_ch;
 
+
 uint32_t core_get_enabled_ch (void)
 {
 	return nb_enables_ch;
 }
-
 
 
 #if ADC_CORE_DEBUG == 1
@@ -43,7 +45,7 @@ void core_init (void)
 	pmc_enable_periph_clk(ID_ADC);
 	adc_init(ADC, sysclk_get_cpu_hz(), ADC_CLK, 0);
 	adc_configure_timing(ADC, 15, ADC_SETTLING_TIME_0, 0);
-	adc_configure_trigger(ADC, ADC_TRIG_SW, 0); //WARNING! Bug in ASF! ADC_MR_FREERUN_ON does't actualy enables freerun mode!
+	adc_configure_trigger(ADC, ADC_TRIG_SW, 0); //! WARNING! Bug in ASF! ADC_MR_FREERUN_ON does't actualy enables freerun mode!
 	//adc_check(ADC, sysclk_get_cpu_hz());
 	ADC->ADC_COR |= (ADC_COR_DIFF0 | ADC_COR_DIFF1 | ADC_COR_DIFF2 | ADC_COR_DIFF3
 					 | ADC_COR_DIFF4 | ADC_COR_DIFF5 | ADC_COR_DIFF6 | ADC_COR_DIFF7); // set channels to differential
@@ -56,7 +58,7 @@ void core_init (void)
 	adc_pdc_pntr = adc_get_pdc_base(ADC); // init DMA
 
 	//Both pdc1 & pdc2:
-	//	Warning		assignment makes integer from pointer without a cast [-Wint-conversion]
+	//	!Warning		assignment makes integer from pointer without a cast [-Wint-conversion]
 	adc_pdc1.ul_addr = adc_raw_data1;
 	adc_pdc2.ul_addr = adc_raw_data2;
 
@@ -65,12 +67,12 @@ void core_init (void)
 	NVIC_EnableIRQ(ADC_IRQn);
 
 	//init timer 0
-	pmc_enable_periph_clk(ID_TC0);
-	tc_init(TC0, TIMER_CH, TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC );
-	tc_write_rc(TC0, TIMER_CH, 50000);
-	tc_enable_interrupt(TC0, TIMER_CH, TC_IER_CPCS);
-	NVIC_SetPriority(TC0_IRQn, TIMER_IRQ_PRIORITY);
-	NVIC_EnableIRQ(TC0_IRQn);
+	pmc_enable_periph_clk(ID_TC0); //Enable a peripheral's clock
+	tc_init(TC0, TIMER_CH, TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC ); //Configure TC for timer, waveform generation, or capture.
+	tc_write_rc(TC0, TIMER_CH, 50000); // Write to TC Register C (RC) on the selected channel.
+	tc_enable_interrupt(TC0, TIMER_CH, TC_IER_CPCS); //Enable the TC interrupts on the specified channel.
+	NVIC_SetPriority(TC0_IRQn, TIMER_IRQ_PRIORITY); //Set Priority Grouping
+	NVIC_EnableIRQ(TC0_IRQn); //Enable External Interrupt
 }
 
 void timer_set_compare_time (uint32_t tim)
@@ -99,11 +101,12 @@ void core_configure (daq_settings_t *settings)
 	//validate settings
 	validate_settings(settings);
 
-	//clear averageing accumulator
+	//clear averaging accumulator
 	core_clear_avg_acuum ();
 
-	//enable enabled channels and count the number of them
+	//disable all adc channels
 	adc_disable_all_channel(ADC);
+	//enable adc channels that are enabled in settings struct
 	for(n = 0; n < 4; n++)
 	{
 		if(settings->channels & (0x01 << n))
@@ -112,10 +115,12 @@ void core_configure (daq_settings_t *settings)
 			adc_enable_channel(ADC, (n * 2));
 		}
 	}
-	//configure dma
+
+	//configure DMA (treba nastavit start & size)
 	//raw_data_size = settings->averaging * nb_enables_ch;
 	adc_pdc1.ul_size = nb_enables_ch;
 	adc_pdc2.ul_size = nb_enables_ch;
+
 	pdc_rx_init(adc_pdc_pntr, &adc_pdc1, &adc_pdc2);
 	data_bank = 0;
 	adc_enable_interrupt(ADC, ADC_IER_ENDRX);
@@ -163,13 +168,14 @@ uint32_t core_new_data_ready (void)
 	return new_data;
 }
 
+//?typo, should be core_new_data_clear
 uint32_t core_new_data_claer (void)
 {
 	new_data = 0;
 	return 0;
 }
 
-//Warning return from incompatible pointer type [-Wincompatible-pointer-types]
+//!Warning return from incompatible pointer type [-Wincompatible-pointer-types]
 uint16_t* core_get_raw_data_pntr (void)
 {
 	return adc_raw_accumulator;
@@ -184,7 +190,7 @@ void core_clear_avg_acuum (void)
 {
 	uint32_t n;
 	//clear averageing accumulator
-	for(n = 0; n < 4; n++)
+	for(n = 0; n < ADC_RAW_DATA_SIZE; n++)
 	{
 		adc_raw_accumulator[n] = 0;
 	}
@@ -220,7 +226,7 @@ void ADC_Handler (void)
 			adc_start(ADC);
 			data_bank = 0;
 
-			for(n = 0; n < 4; n++)
+			for(n = 0; n < ADC_RAW_DATA_SIZE; n++)
 			{
 				adc_raw_accumulator[n] += adc_raw_data2[n];
 			}
@@ -243,6 +249,9 @@ void ADC_Handler (void)
 	}
 }
 
+/*
+?Timer/Counter 0 handler, se uporablja za ADC??
+*/
 void TC0_Handler (void)
 {
 	if((tc_get_status(TC0, 0) & TC_SR_CPCS))

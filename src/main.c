@@ -51,13 +51,18 @@ void create_test_data (void)
 }
 */
 
+/*
+!Jankovc nemara tega :(
+*/
 void delay (void)
 {
 	volatile uint32_t n;
 	for(n = 0; n < 10000; n++) {}
 }
 
-
+/*
+Print/Send data through USB to computer
+*/
 void print_data (void)
 {
 	uint8_t str [40];
@@ -67,8 +72,8 @@ void print_data (void)
 	{
 		if(master_settings.channels & (1 << n))
 		{
-			//Warning		format '%u' expects argument of type 'unsigned int', but argument 3 has type 'long unsigned int' [-Wformat=]
-			chars += sprintf(str, "CH%u: %u\n\r", n + 1, calc_data.results[n]); 
+			//!Warning		format '%u' expects argument of type 'unsigned int', but argument 3 has type 'long unsigned int' [-Wformat=]
+			chars += sprintf(str, "CH%u: %u\n\r", n + 1, calc_data.results[n]);
 		}
 	}
 	udi_cdc_write_buf(str, chars);
@@ -84,14 +89,16 @@ void debug_copy_data (void)
 
 void calculate_data (void)
 {
-	//Warning		assignment from incompatible pointer type [-Wincompatible-pointer-types]
+	//!Warning		assignment from incompatible pointer type [-Wincompatible-pointer-types]
 	uint32_t* raw_data_ptr;
 	uint32_t n=0;
 	//uint32_t m = 0;
+
+	//dobi pointer na buffer, kjer so shranjeni ADC values
 	raw_data_ptr = core_get_raw_data_pntr();
 	for(n = 0; n < 4; n++)
 	{
-		calc_data.results[n] = *(raw_data_ptr + n) / master_settings.averaging; 
+		calc_data.results[n] = *(raw_data_ptr + n) / master_settings.averaging;
 	}
 	calc_data.new_data = 1;
 	core_clear_avg_acuum();
@@ -101,38 +108,38 @@ int main (void)
 {
 	/* Insert system clock initialization code here (sysclk_init()). */
 	wdt_disable(WDT);
-	sysclk_init();
-	board_init();
-	core_init();
-	udc_start();
-	
+	sysclk_init(); // clock init, ASF
+	board_init();  // ASF function, empty function??
+	core_init(); //core.c init
+	udc_start(); //usb stack, ASF
+
 	master_settings.acquisitionNbr = 4;
 	master_settings.acqusitionTime = 10000;
 	master_settings.averaging = 6;
-	master_settings.channels = (DAQ_CHANNEL_1);
+	master_settings.channels = (DAQ_CHANNEL_1); //DAQ channeli so od 1-4
 
 	while(1)
 	{
-		
-		if(udi_cdc_get_nb_received_data())
+
+		if(udi_cdc_get_nb_received_data()) //usb recieved data, return the number of data available
 		{
-			if(udi_cdc_getc() == 's')
+			//?vrjetn bi mogu poslt udi_cdc_getc() parserju
+			if(udi_cdc_getc() == 's') //Waits and gets a value on CDC line; return value read on CDC line [int]
 			{
-				core_configure(&master_settings);
-				core_start();
+				core_configure(&master_settings); //nastavitev cora z daq_settingsi, ki mu jih passamo
+				core_start(); //start core
 				while(core_status_get() == CORE_RUNNING)
 				{
-					if(core_new_data_ready())
+					if(core_new_data_ready()) //return new_data [bool]
 					{
-						calculate_data();
+						calculate_data(); //povprecenje
 						//debug_copy_data();
-						core_new_data_claer();
-						print_data();
-						
+						core_new_data_claer(); //new_data=0
+						print_data(); //Posl podatke o ADC prek USB na komp
 					}
 				}
 			}
 		}
-		
+
 	}
 }

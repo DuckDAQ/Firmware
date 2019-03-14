@@ -3,7 +3,7 @@
  *
  * Created: 13. 12. 2017 10:41:46
  *  Author: matja
- */ 
+ */
 
 
 #include <asf.h>
@@ -22,7 +22,7 @@
 
 //ADC configs
 #define ADC_CLK	16000000 // clock of ADC converter
-#define ADC_IRQ_PRIORITY		4	
+#define ADC_IRQ_PRIORITY		4
 
 //TIMER configs
 #define TIMER_CH				0			//channel# of used timer
@@ -61,7 +61,7 @@ typedef enum		// bitmask for channel enabling
 typedef enum
 {
 	CORE_STOPED,
-	CORE_RUNNING	
+	CORE_RUNNING
 }core_status_t;
 
 typedef struct
@@ -90,9 +90,15 @@ uint32_t core_new_data_claer (void);
 uint16_t* core_get_raw_data_pntr (void);
 uint32_t core_get_raw_data_size (void);
 uint32_t core_get_enabled_ch (void);
+/*
+Clear adc_raw_accumulator[] array, where
+*/
 void core_clear_avg_acuum (void);
 	#if ADC_CORE_DEBUG == 1
 	void pio_init (void);
 	#endif
+/*
+Preveri nastavitve DAQ, v primeru da so parametri out-of-range, jih nastavi na primerno vrednost.
+*/
 void validate_settings (daq_settings_t *settings);
 #endif /* CORE_H_ */

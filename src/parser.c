@@ -5,14 +5,11 @@
  *  Author: Matjaz
  */ 
 
-
 #include <asf.h>
 #include <string.h>
 #include <stdio.h>
 #include "parser.h"
 #include "core.h"
-
-
 
 
 daq_settings_t daqSettings;
