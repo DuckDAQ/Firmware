@@ -66,10 +66,14 @@ typedef enum
 
 typedef struct
 {
-	uint32_t acqusitionTime;	//period of acqusition
-	uint32_t acquisitionNbr;	//number of consecutive acquisitions
-	uint32_t averaging;			//number of averages
+	uint16_t acqusitionTime;	//period of acqusition
+	uint16_t acquisitionNbr;	//number of consecutive acquisitions
+	uint16_t averaging;			//number of averages
+  uint16_t DACval[4];
 	channel_bitmask_t channels;	//enabled channels bitmask
+  uint8_t startAcq;
+  uint8_t binMode;
+  uint8_t sequence[4];
 }daq_settings_t;
 
 typedef struct

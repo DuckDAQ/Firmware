@@ -30,39 +30,20 @@
  */
 #include <asf.h>
 #include "core.h"
+#include "parser.h"
 
 daq_settings_t master_settings;
-daq_measured_data_t calc_data;
-uint16_t debug_out [40];
+//daq_measured_data_t calc_data;
+//uint16_t debug_out [40];
+
 
 /*
-void create_test_data (void)
-{
-	uint16_t *data_prt;
-	uint32_t n = 0;
-	data_prt = core_get_raw_data_pntr();
-	for(n = 0; n < 20; n += 4)
-	{
-		*(data_prt + n + 0) = 1000;
-		*(data_prt + n + 1) = 2000;
-		*(data_prt + n + 2) = 3000;
-		*(data_prt + n + 3) = 4000;
-	}
-}
-*/
-
-/*
-!Jankovc nemara tega :(
-*/
 void delay (void)
 {
 	volatile uint32_t n;
 	for(n = 0; n < 10000; n++) {}
 }
 
-/*
-Print/Send data through USB to computer
-*/
 void print_data (void)
 {
 	uint8_t str [40];
@@ -103,6 +84,8 @@ void calculate_data (void)
 	calc_data.new_data = 1;
 	core_clear_avg_acuum();
 }
+*/
+
 
 int main (void)
 {
@@ -118,6 +101,30 @@ int main (void)
 	master_settings.averaging = 6;
 	master_settings.channels = (DAQ_CHANNEL_1); //DAQ channeli so od 1-4
 
+  while(1)
+  {
+    CMD_t incomingCMD;
+    if(udi_cdc_get_nb_received_data())
+    {
+      uint8_t len = 0;
+      char buf[50];
+      if (parseCommand(udi_cdc_getc(), &incomingCMD))
+      {
+        if(!incomingCMD.funcPtr(incomingCMD.par, &master_settings))
+        {
+          len = sprintf(buf, "ERROR setting command\n\r");
+          udi_cdc_write_buf(buf, len);
+        }        
+      } 
+      else
+      {
+        len = sprintf(buf, "Command syntax ERROR\n\r");
+        udi_cdc_write_buf(buf, len);
+      }
+    }
+  }
+  
+  /*
 	while(1)
 	{
 
@@ -132,14 +139,15 @@ int main (void)
 				{
 					if(core_new_data_ready()) //return new_data [bool]
 					{
-						calculate_data(); //povprecenje
+						//calculate_data(); //povprecenje
 						//debug_copy_data();
 						core_new_data_claer(); //new_data=0
-						print_data(); //Posl podatke o ADC prek USB na komp
+						//print_data(); //Posl podatke o ADC prek USB na komp
 					}
 				}
 			}
 		}
-
 	}
+  */
+  
 }

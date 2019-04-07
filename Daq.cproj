@@ -230,7 +230,7 @@
     <ResetRule>0</ResetRule>
     <EraseKey />
     <avrtool>com.atmel.avrdbg.tool.samice</avrtool>
-    <avrtoolserialnumber>268005015</avrtoolserialnumber>
+    <avrtoolserialnumber>28009857</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x28990561</avrdeviceexpectedsignature>
     <com_atmel_avrdbg_tool_samice>
       <ToolOptions>
@@ -245,17 +245,29 @@
           <JtagSelectedDeviceIndexInChain>0</JtagSelectedDeviceIndexInChain>
           <JtagDaisyChainDevices>
           </JtagDaisyChainDevices>
+          <SwdClock>4000000</SwdClock>
         </InterfaceProperties>
         <InterfaceName>JTAG</InterfaceName>
         <JlinkConfigFile>D:\GoogleDrive\my_documents\projects\FE\USB DAQ\firmware\DAQ_new\Daq\jlink.config</JlinkConfigFile>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.samice</ToolType>
-      <ToolNumber>268005015</ToolNumber>
-      <ToolName>J-Link</ToolName>
+      <ToolNumber>28009857</ToolNumber>
+      <ToolName>SAM-ICE</ToolName>
     </com_atmel_avrdbg_tool_samice>
-    <avrtoolinterface>
-    </avrtoolinterface>
+    <avrtoolinterface>JTAG</avrtoolinterface>
     <avrtoolinterfaceclock>4000000</avrtoolinterfaceclock>
+    <custom>
+      <ToolOptions xmlns="">
+        <InterfaceProperties>
+        </InterfaceProperties>
+        <InterfaceName>
+        </InterfaceName>
+      </ToolOptions>
+      <ToolType xmlns="">custom</ToolType>
+      <ToolNumber xmlns="">
+      </ToolNumber>
+      <ToolName xmlns="">Custom Programming Tool</ToolName>
+    </custom>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -631,9 +643,9 @@
     <Compile Include="src\core.h">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\parser.c">
+    <Compile Include="src\parser.c">
       <SubType>compile</SubType>
-    </None>
+    </Compile>
     <None Include="src\parser.h">
       <SubType>compile</SubType>
     </None>

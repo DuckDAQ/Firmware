@@ -9,273 +9,205 @@
 #include <string.h>
 #include <stdio.h>
 #include "parser.h"
-#include "core.h"
 
 
-daq_settings_t daqSettings;
-
-
-void init_daq_settings_struct (void)
+bool parseCommand (uint8_t CMD, CMD_t *parsedCMD)
 {
-	daqSettings.avgCounter = 1;
-	daqSettings.comMode = ASCII_MODE;
-	daqSettings.cycles = 1;
-	daqSettings.newData = 0;
-	daqSettings.sequence[0] = 1;
-	daqSettings.sequence[1] = 0;
-	daqSettings.timerBase = 50000;
-}
-
-
-void skip_blank_chars (uint8_t *string)
-{
-	string++;
-	while((*string) == ' ' )
+	bool result = FALSE;	//set result to false
+	
+	switch (CMD)
 	{
-		string++;
+  	case CMD_START_ACQ:
+      parsedCMD->cmd = CMD_START_ACQ;
+      parsedCMD->funcPtr = StartACQ;
+      result = getPar(0, PARAMETER_TIMEOUT, parsedCMD);
+      break;
+  	case CMD_START_FAST_ACQ:
+      parsedCMD->cmd = CMD_START_FAST_ACQ;
+      parsedCMD->funcPtr = StartFastACQ;
+      result = getPar(0, PARAMETER_TIMEOUT, parsedCMD);
+      break;
+  	case CMD_STOP_ACQ:
+      parsedCMD->cmd = CMD_STOP_ACQ;
+      parsedCMD->funcPtr = StopACQ;
+      result = getPar(0, PARAMETER_TIMEOUT, parsedCMD);
+      break;
+  	case CMD_SET_SAMPLE_PERIOD:
+      parsedCMD->cmd = CMD_SET_SAMPLE_PERIOD;
+      parsedCMD->funcPtr = SetSamplePeriod;
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD);
+      break;
+  	case CMD_SET_AVERAGE_COUNT:
+      parsedCMD->cmd =  CMD_SET_AVERAGE_COUNT;
+      parsedCMD->funcPtr =  SetAverageCount;
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD);
+      break;
+  	case CMD_SET_MEASURMENT_COUNT:
+      parsedCMD->cmd =  CMD_SET_MEASURMENT_COUNT;
+      parsedCMD->funcPtr =  SetMeasurmentCount;
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD);
+      break;
+  	case CMD_SET_SEQUENCER:
+      parsedCMD->cmd =  CMD_SET_SEQUENCER;
+      parsedCMD->funcPtr = SetSequencer;
+      result = getPar(4, PARAMETER_TIMEOUT, parsedCMD);
+      break;
+  	case CMD_SET_DAC_VALUE:
+      parsedCMD->cmd =  CMD_SET_DAC_VALUE;
+      parsedCMD->funcPtr = SetDACvalue;
+      result = getPar(2, PARAMETER_TIMEOUT, parsedCMD);
+      break;
+  	default:
+      parsedCMD->cmd = 0;
+      parsedCMD->funcPtr = NULL;
+      for(uint8_t i = 0; i < MAX_PARAMETER_COUNT; i++)  parsedCMD->par[i] = 0;
+      result = FALSE;
+      break;
 	}
+  return result;	//return result
+}
+
+bool getPar(uint8_t parCount, uint16_t timeout, CMD_t *CMDpar){
+  bool result = FALSE;	//set result to false
+  uint8_t currentPar = 0; //index of current parameter
+  uint8_t newChar = 0, prevChar = 0;
+  for(uint8_t i = 0; i < MAX_PARAMETER_COUNT; i++)  CMDpar->par[i] = 0; //set all parameters to 0
+
+  while(!result && timeout){  //wait for complete parameters or timeout
+    if(udi_cdc_get_nb_received_data()){ //was new char received?
+      newChar = udi_cdc_getc(); //get the char
+      if(newChar == '\r') //end of command
+      {
+        if(parCount == (currentPar + 1) || parCount == 0)  result = TRUE;  //were all parameters received?
+        else result = FALSE;
+      }
+      else if(newChar == ',') //new parameter
+      {
+        currentPar++;
+      }
+      else if(newChar == '\b')  //backspace remove previous char
+      {
+        if (prevChar == ',' && currentPar != 0)  currentPar--;
+        else  CMDpar->par[currentPar] /= 10;
+      }
+      else if(newChar >= '0' && newChar <= '9') //got parameter
+      {
+        CMDpar->par[currentPar] *= 10;
+        CMDpar->par[currentPar] += newChar - '0';
+      }
+      prevChar = newChar; //save char in case of backspace
+      newChar = 0; //reset char
+    }
+    else //otherwise wait for 1ms before checking again
+    {
+      //delay(1);
+      //timeout--;
+    }
+  }
+  
+  return result;	//return result
 }
 
 
-void print_formating_error(void)
+bool StartACQ (uint16_t *parPtr, daq_settings_t *settings)
 {
-	uint32_t charsPrinted;
-	uint8_t printBuffer[20];
-	
-	charsPrinted = sprintf(printBuffer, "Comand format error!\n\r");
-	udi_cdc_write_buf(printBuffer, charsPrinted);
+  bool result = TRUE;	//set result to false
+  
+  settings->startAcq = 1;
+  settings->binMode = ASCII_MODE;
+  //aquisition_start();
+  char buf[50];
+  uint8_t len = sprintf(buf, "Acquisition started in ASCII\n\r");
+  udi_cdc_write_buf(buf, len);
+  
+  return result;	//return result
 }
 
-void parse_comands (void)
+bool StartFastACQ (uint16_t *parPtr, daq_settings_t *settings)
 {
-	static uint8_t fsmState = FSM_ID_BYTE;
-	static uint8_t comandByte = 0;
-	static uint8_t insertPointer = 0;
-	uint8_t temp, n = 0;
-	static uint8_t holdingBuffer[HOLDING_BUFFER_SIZE];
-	static uint8_t tempBuffer[10];
-	uint8_t *startOfData;
-	uint8_t printBuffer [50];
-	uint32_t charsPrinted, entryCounter;
-	volatile int32_t a, dacCh = 0;
-	
-	if(udi_cdc_is_rx_ready())
-	{
-		temp = udi_cdc_getc();
-		udi_cdc_putc(temp);
-		
-		if(temp == 127) // 127 = backspace in ASCII?? (sholud be DELITE)
-		{
-			if(insertPointer)
-			{
-				insertPointer--;
-			}
-		}
-		else if(insertPointer < (HOLDING_BUFFER_SIZE - 2))
-		{
-			holdingBuffer[insertPointer] = temp;
-			insertPointer++;
-		}	
-		
-		if(temp == '\r')
-		{
-			udi_cdc_putc('\n');
-			udi_cdc_putc('\r');
-			
-			holdingBuffer[insertPointer] = 0;
-			startOfData = strpbrk(holdingBuffer, LIST_OF_KNOWN_COMANDS);
-			//after this executes startOfData should point to first know character in string
-			switch (*(startOfData))
-			{
-				case COMAND_START_ACQ:
-				case COMAND_START_FAST_ACQ:
-					if(*startOfData == COMAND_START_ACQ)
-					{
-						daqSettings.startAcq = 1;
-						daqSettings.comMode = ASCII_MODE;
-						charsPrinted = sprintf(printBuffer, "Acquisition started\n\r");
-						udi_cdc_write_buf(printBuffer, charsPrinted);
-						aquisition_start();
-						break;
-					}
-					else if (*startOfData == COMAND_START_FAST_ACQ)
-					{
-						daqSettings.startAcq = 1;
-						daqSettings.comMode = FAST_MODE;
-						aquisition_start();
-						break;
-					}
-					
-				
-				case COMAND_STOP_ACQ:
-					daqSettings.stopAcq = 1;
-					charsPrinted = sprintf(printBuffer, "Acquisition stoped\n\r");
-					udi_cdc_write_buf(printBuffer, charsPrinted);
-					aquisition_stop();
-					break;
-					
-				case COMAND_SET_SAMPLE_PERIOD:
-				case COMAND_SET_AVERAGE_COUNT:
-				case COMAND_SET_MEASURMENT_NBR_COUNT:
-					comandByte = *startOfData;
-					//skip_blank_chars(startOfData);
-					startOfData++;
-					n = 0;
-					while(*startOfData >= '0' && *startOfData <= '9')  //copy all numeric chars in tempBuffer
-					{
-						if(startOfData > (holdingBuffer + HOLDING_BUFFER_SIZE - 1)) break; // prevents from trying to read beyond the end of holding buffer
-						tempBuffer[n++] = *startOfData++;
-					}
-					if(comandByte == COMAND_SET_SAMPLE_PERIOD)
-					{
-						if(*startOfData == '\r')
-						{
-							tempBuffer[n] = 0;
-							a = atoi(tempBuffer);
-							if(a < 2) a = 2;
-							if(a > 100000) a = 100000;
-							daqSettings.timerBase = a / 2;
-							charsPrinted = sprintf(printBuffer, "Sample period set to %u uS\n\r", daqSettings.timerBase * 2);
-							udi_cdc_write_buf(printBuffer, charsPrinted);
-						}
-						else
-						{
-							print_formating_error();
-						}	
-					}
-					else if(comandByte == COMAND_SET_AVERAGE_COUNT)
-					{
-						if(*startOfData == '\r')
-						{
-							tempBuffer[n] = 0;
-							daqSettings.avgCounter = atoi(tempBuffer);
-							charsPrinted = sprintf(printBuffer, "DAQ will atempt to take %u samples per channel\n\r", daqSettings.avgCounter);
-							udi_cdc_write_buf(printBuffer, charsPrinted);
-							//todo: limit samples per channel
-						}
-						else
-						{
-							print_formating_error();
-						}
-					}
-					else if(comandByte == COMAND_SET_MEASURMENT_NBR_COUNT)
-					{
-						if(*startOfData == '\r')
-						{
-							tempBuffer[n] = 0;
-							daqSettings.cycles = atoi(tempBuffer);
-							charsPrinted = sprintf(printBuffer, "DAQ will sample all enabled channels %u times\n\r", daqSettings.cycles);
-							udi_cdc_write_buf(printBuffer, charsPrinted);
-							//todo: limit samples per channel
-						}
-						else
-						{
-							print_formating_error();
-						}
-					}
-					break;
-				
-				case COMAND_SET_SEQUENCER:
-					//skip_blank_chars();
-					startOfData++;
-					entryCounter = 0;
-					n = 0;
-					while(entryCounter < 8)
-					{
-						n = 0;
-						while(*startOfData != ',')
-						{
-							tempBuffer[n++] = *startOfData++;
-							if(*startOfData == '\r') break;
-						}
-						tempBuffer[n]  = 0;
-						a = atoi(tempBuffer);
-						if(a)
-						{
-							if(a > 34 {a = 4;} // we only have 4 channels
-							daqSettings.sequence[entryCounter] = a;
-						}
-						else
-						{
-							daqSettings.sequence[entryCounter] = 0;
-							break;
-						}
-						if(*startOfData == '\r') break;
-						entryCounter++;
-						startOfData++;
-					}
-					entryCounter++;
-					daqSettings.sequence[entryCounter] = 0;
-					charsPrinted = sprintf(printBuffer, "Sequence set to: ");
-					udi_cdc_write_buf(printBuffer, charsPrinted);
-					for(n = 0; n < 8; n++)
-					{
-						charsPrinted = sprintf(printBuffer, "%u ", daqSettings.sequence[n]);
-						udi_cdc_write_buf(printBuffer, charsPrinted);
-						if(daqSettings.sequence[n] == 0) break;	
-					}
-					udi_cdc_putc('\n');
-					udi_cdc_putc('\r');
-					
-					break;
-					
-				case COMAND_SET_DAC_VALUE:
-					n = 0;
-					startOfData++;
-					if(*startOfData == '0') {dacCh = 0;}
-					else if(*startOfData == '1') {dacCh = 1;}
-					else {dacCh = 0;}
-					startOfData++;
-					if(*startOfData != ',') 
-					{
-						print_formating_error();
-						break;
-					}
-
-					startOfData++;
-					n = 0;
-					while(*startOfData >= '0' && *startOfData <= '9' || *startOfData == '-')
-					{
-						if(startOfData > (holdingBuffer + HOLDING_BUFFER_SIZE - 1)) break;
-						tempBuffer[n++] = *startOfData++;
-					}
-					tempBuffer[n] = 0;
-					if(*startOfData == '\r')
-					{
-						a = atoi(tempBuffer);
-						if(a < -10000) a = -10000;
-						if(a > 10000) a = 10000;
-						a = (a * 1000) / DAC_GAIN;
-						a += 2048;
-						dac_set(dacCh, a);
-						charsPrinted = sprintf(printBuffer, "DAC channel %u set to %d mV\n\r", dacCh, ((a * DAC_GAIN) / 1000) - 10000);
-						udi_cdc_write_buf(printBuffer, charsPrinted);
-						
-					}
-					else
-					{
-						print_formating_error();
-						break;
-					}
-					break;
-					
-				default:
-					charsPrinted = sprintf(printBuffer, "Unknown comand!\n\r");
-					udi_cdc_write_buf(printBuffer, charsPrinted);
-					
-					
-			}
-			
-			insertPointer = 0;
-		}
-	
-	}
+  bool result = TRUE;	//set result to false
+  
+  settings->startAcq = 1;
+  settings->binMode = FAST_MODE;
+  //aquisition_start();
+  char buf[50];
+  uint8_t len = sprintf(buf, "Acquisition started in binary\n\r");
+  udi_cdc_write_buf(buf, len);
+  
+  return result;	//return result
 }
 
-
-
-
-daq_settings_t * get_current_DAQ_settings (void)
+bool StopACQ (uint16_t *parPtr, daq_settings_t *settings)
 {
-	return (&daqSettings);
+  bool result = TRUE;	//set result to false
+  
+  settings->startAcq = 0;
+  //aquisition_stop();
+  char buf[50];
+  uint8_t len = sprintf(buf, "Acquisition stopped\n\r");
+  udi_cdc_write_buf(buf, len);
+  
+  return result;	//return result
+}
+
+bool SetSamplePeriod (uint16_t *parPtr, daq_settings_t *settings)
+{
+  bool result = TRUE;	//set result to false
+  
+  settings->acqusitionTime = *parPtr;
+  char buf[50];
+  uint8_t len = sprintf(buf, "Sample period set to %u uS\n\r", settings->acqusitionTime);
+  udi_cdc_write_buf(buf, len);
+  
+  return result;	//return result
+}
+
+bool SetAverageCount (uint16_t *parPtr, daq_settings_t *settings)
+{
+  bool result = TRUE;	//set result to false
+  
+  settings->averaging = *parPtr;
+  char buf[50];
+  uint8_t len = sprintf(buf, "DAQ will attempt to take %u samples per channel\n\r", settings->averaging);
+  udi_cdc_write_buf(buf, len);
+  //todo: limit samples per channel
+  
+  return result;	//return result
+}
+
+bool SetMeasurmentCount (uint16_t *parPtr, daq_settings_t *settings)
+{
+  bool result = TRUE;	//set result to false
+  
+  settings->acquisitionNbr =  *parPtr;
+  char buf[50];
+  uint8_t len = sprintf(buf, "DAQ will sample all enabled channels %u times\n\r", settings->acquisitionNbr);
+  udi_cdc_write_buf(buf, len);
+  //todo: limit samples per channel
+  
+  return result;	//return result
+}
+
+bool SetSequencer (uint16_t *parPtr, daq_settings_t *settings)
+{
+  bool result = TRUE;	//set result to false
+  
+  for(uint8_t i = 0; i < 4; i++)  settings->sequence[i] = *(parPtr + i);
+  char buf[50];
+  uint8_t len = sprintf(buf, "Sequence set to: %d, %d, %d, %d\n\r", *(parPtr+0), *(parPtr+1), *(parPtr+2), *(parPtr+3));
+  udi_cdc_write_buf(buf, len);
+  
+  return result;	//return result
+}
+
+bool SetDACvalue (uint16_t *parPtr, daq_settings_t *settings)
+{
+  bool result = TRUE;	//set result to false
+  
+  settings->DACval[*parPtr] = *(parPtr + 1);
+  char buf[50];
+  uint8_t len = sprintf(buf, "DAC channel %u set to %u mV\n\r", *(parPtr + 0), *(parPtr + 1));
+  udi_cdc_write_buf(buf, len);
+  
+  return result;	//return result
 }

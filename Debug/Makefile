@@ -102,6 +102,7 @@ C_SRCS +=  \
 ../src/ASF/sam/drivers/udp/udp_device.c \
 ../src/ASF/sam/drivers/wdt/wdt.c \
 ../src/core.c \
+../src/parser.c \
 ../src/ASF/sam/drivers/adc/adc_sam3u.c \
 ../src/ASF/common/services/usb/class/cdc/device/udi_cdc_desc.c \
 ../src/ASF/common/services/clock/sam3s/sysclk.c \
@@ -137,6 +138,7 @@ src/ASF/sam/drivers/pio/pio_handler.o \
 src/ASF/sam/drivers/udp/udp_device.o \
 src/ASF/sam/drivers/wdt/wdt.o \
 src/core.o \
+src/parser.o \
 src/ASF/sam/drivers/adc/adc_sam3u.o \
 src/ASF/common/services/usb/class/cdc/device/udi_cdc_desc.o \
 src/ASF/common/services/clock/sam3s/sysclk.o \
@@ -165,6 +167,7 @@ src/ASF/sam/drivers/pio/pio_handler.o \
 src/ASF/sam/drivers/udp/udp_device.o \
 src/ASF/sam/drivers/wdt/wdt.o \
 src/core.o \
+src/parser.o \
 src/ASF/sam/drivers/adc/adc_sam3u.o \
 src/ASF/common/services/usb/class/cdc/device/udi_cdc_desc.o \
 src/ASF/common/services/clock/sam3s/sysclk.o \
@@ -193,6 +196,7 @@ src/ASF/sam/drivers/pio/pio_handler.d \
 src/ASF/sam/drivers/udp/udp_device.d \
 src/ASF/sam/drivers/wdt/wdt.d \
 src/core.d \
+src/parser.d \
 src/ASF/sam/drivers/adc/adc_sam3u.d \
 src/ASF/common/services/usb/class/cdc/device/udi_cdc_desc.d \
 src/ASF/common/services/clock/sam3s/sysclk.d \
@@ -221,6 +225,7 @@ src/ASF/sam/drivers/pio/pio_handler.d \
 src/ASF/sam/drivers/udp/udp_device.d \
 src/ASF/sam/drivers/wdt/wdt.d \
 src/core.d \
+src/parser.d \
 src/ASF/sam/drivers/adc/adc_sam3u.d \
 src/ASF/common/services/usb/class/cdc/device/udi_cdc_desc.d \
 src/ASF/common/services/clock/sam3s/sysclk.d \
@@ -305,6 +310,13 @@ src/ASF/sam/drivers/wdt/wdt.o: ../src/ASF/sam/drivers/wdt/wdt.c
 	
 
 src/core.o: ../src/core.c
+	@echo Building file: $<
+	@echo Invoking: ARM/GNU C Compiler : 6.3.1
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAM3S1B__ -DDEBUG -Dscanf=iscanf -DBOARD=USER_BOARD -DARM_MATH_CM3=true -Dprintf=iprintf -DUDD_ENABLE  -I"../src/ASF/common/boards" -I"../src/ASF/sam/utils" -I"../src/ASF/sam/utils/header_files" -I"../src/ASF/sam/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/common/utils" -I"../src/ASF/sam/utils/cmsis/sam3s/source/templates" -I"../src/ASF/sam/utils/cmsis/sam3s/include" -I"../src/ASF/common/boards/user_board" -I"../src" -I"../src/config" -I"../src/ASF/sam/drivers/dacc" -I"../src/ASF/sam/drivers/matrix" -I"../src/ASF/sam/drivers/pdc" -I"../src/ASF/sam/drivers/pdc/pdc_uart_example" -I"../src/ASF/sam/drivers/pio" -I"../src/ASF/sam/drivers/pmc" -I"../src/ASF/sam/drivers/supc" -I"../src/ASF/sam/drivers/tc" -I"../src/ASF/common/services/clock" -I"../src/ASF/common/services/ioport" -I"../src/ASF/common/services/sleepmgr" -I"../src/ASF/common/services/usb" -I"../src/ASF/common/services/usb/class/cdc" -I"../src/ASF/common/services/usb/class/cdc/device" -I"../src/ASF/common/services/usb/udc" -I"../src/ASF/sam/drivers/adc" -I"../src/ASF/sam/drivers/udp" -I"../src/ASF/sam/drivers/wdt"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m3 -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+src/parser.o: ../src/parser.c
 	@echo Building file: $<
 	@echo Invoking: ARM/GNU C Compiler : 6.3.1
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAM3S1B__ -DDEBUG -Dscanf=iscanf -DBOARD=USER_BOARD -DARM_MATH_CM3=true -Dprintf=iprintf -DUDD_ENABLE  -I"../src/ASF/common/boards" -I"../src/ASF/sam/utils" -I"../src/ASF/sam/utils/header_files" -I"../src/ASF/sam/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/common/utils" -I"../src/ASF/sam/utils/cmsis/sam3s/source/templates" -I"../src/ASF/sam/utils/cmsis/sam3s/include" -I"../src/ASF/common/boards/user_board" -I"../src" -I"../src/config" -I"../src/ASF/sam/drivers/dacc" -I"../src/ASF/sam/drivers/matrix" -I"../src/ASF/sam/drivers/pdc" -I"../src/ASF/sam/drivers/pdc/pdc_uart_example" -I"../src/ASF/sam/drivers/pio" -I"../src/ASF/sam/drivers/pmc" -I"../src/ASF/sam/drivers/supc" -I"../src/ASF/sam/drivers/tc" -I"../src/ASF/common/services/clock" -I"../src/ASF/common/services/ioport" -I"../src/ASF/common/services/sleepmgr" -I"../src/ASF/common/services/usb" -I"../src/ASF/common/services/usb/class/cdc" -I"../src/ASF/common/services/usb/class/cdc/device" -I"../src/ASF/common/services/usb/udc" -I"../src/ASF/sam/drivers/adc" -I"../src/ASF/sam/drivers/udp" -I"../src/ASF/sam/drivers/wdt"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m3 -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

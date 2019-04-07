@@ -10,46 +10,53 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 
+#include "core.h"
+
 #define TRUE	1
 #define FALSE	0
 
 //Packet number definitions
-#define DAQ_START				0x10		
-#define DAQ_STOP				0x20
+#define DAQ_START				    0x10		
+#define DAQ_STOP				    0x20
 #define DAQ_SET_FREQUENCY		0x11
 #define DAQ_SET_SEQUENCER		0x18
-#define DAQ_SET_SAMPLE_NBR		0x12
+#define DAQ_SET_SAMPLE_NBR  0x12
 #define DAQ_SET_CYCLE_NBR		0x22
-#define DAQ_SET_ANALOG_OUT		0x32
+#define DAQ_SET_ANALOG_OUT	0x32
 
-//Finite state machine states definitions 
+// Command list
+#define CMD_START_ACQ			        'S'
+#define CMD_STOP_ACQ			        'T'
+#define CMD_SET_SAMPLE_PERIOD	    'R'
+#define CMD_SET_AVERAGE_COUNT	    'A'
+#define CMD_SET_MEASURMENT_COUNT  'F'
+#define CMD_SET_SEQUENCER		      'E'
+#define CMD_SET_DAC_VALUE		      'D'
+#define CMD_START_FAST_ACQ		    's'
 
-#define FSM_ID_BYTE				0
-#define	FSM_WAIT_2_BYTES		1
-#define FSM_WAIT_8_BYTES		2
-#define FSM_SET_FREQ			3
+#define MAX_PARAMETER_COUNT 4
+#define PARAMETER_TIMEOUT 100
 
-#define HOLDING_BUFFER_SIZE		20
+#define ASCII_MODE  0
+#define FAST_MODE	  1
 
-#define LIST_OF_KNOWN_COMANDS	"STRAFEDs"
+typedef struct
+{
+  uint8_t cmd;
+  bool (*funcPtr)(uint16_t*, daq_settings_t*);
+  uint16_t par[4];
+}CMD_t;
 
-#define COMAND_START_ACQ						'S'
-#define COMAND_STOP_ACQ							'T'
-#define COMAND_SET_SAMPLE_PERIOD				'R'
-#define COMAND_SET_AVERAGE_COUNT				'A'
-#define COMAND_SET_MEASURMENT_NBR_COUNT			'F'
-#define COMAND_SET_SEQUENCER					'E'
-#define COMAND_SET_DAC_VALUE					'D'
-#define COMAND_START_FAST_ACQ					's'
+bool parseCommand (uint8_t CMD, CMD_t *parsedCMD);
+bool getPar(uint8_t parCount, uint16_t timeout, CMD_t *CMDpar);
 
-
-#define ASCII_MODE	0
-#define FAST_MODE	1
-
-
-
-void parse_comands(void);
-void init_daq_settings_struct (void);
-daq_settings_t * get_current_DAQ_settings (void);
+bool StartACQ (uint16_t *parPtr, daq_settings_t *settings);
+bool StartFastACQ (uint16_t *parPtr, daq_settings_t *settings);
+bool StopACQ (uint16_t *parPtr, daq_settings_t *settings);
+bool SetSamplePeriod (uint16_t *parPtr, daq_settings_t *settings);
+bool SetAverageCount (uint16_t *parPtr, daq_settings_t *settings);
+bool SetMeasurmentCount (uint16_t *parPtr, daq_settings_t *settings);
+bool SetSequencer (uint16_t *parPtr, daq_settings_t *settings);
+bool SetDACvalue (uint16_t *parPtr, daq_settings_t *settings);
 
 #endif /* PARSER_H_ */
