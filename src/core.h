@@ -71,7 +71,6 @@ typedef struct
 	uint16_t averaging;			//number of averages
   int16_t DACval[4];
 	channel_bitmask_t channels;	//enabled channels bitmask
-  uint8_t startAcq;
   uint8_t binMode;
   uint8_t sequence[4];
 }daq_settings_t;

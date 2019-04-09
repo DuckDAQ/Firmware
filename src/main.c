@@ -29,10 +29,11 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 #include <asf.h>
+#include "communication.h"
 #include "core.h"
 #include "parser.h"
 
-daq_settings_t master_settings;
+
 //daq_measured_data_t calc_data;
 //uint16_t debug_out [40];
 
@@ -94,33 +95,36 @@ int main (void)
 	sysclk_init(); // clock init, ASF
 	board_init();  // ASF function, empty function??
 	core_init(); //core.c init
-	udc_start(); //usb stack, ASF
+  
+  COM_t *USB = getComInterface();
+  USB->init(NULL);
 
-	master_settings.acquisitionNbr = 4;
-	master_settings.acqusitionTime = 10000;
-	master_settings.averaging = 6;
-	master_settings.channels = (DAQ_CHANNEL_1); //DAQ channeli so od 1-4
+  daq_settings_t master_settings;
+  
+  master_settings.acquisitionNbr = 4;
+  master_settings.acqusitionTime = 10000;
+  master_settings.averaging = 6;
+  master_settings.channels = (DAQ_CHANNEL_1);
 
   while(1)
   {
     CMD_t incomingCMD;
-    if(udi_cdc_get_nb_received_data())
+    if(USB->available())
     {
       uint8_t len = 0;
-      char buf[50];
-      if (parseCommand(udi_cdc_getc(), &incomingCMD))
+      uint8_t buf[50];
+      if (parseCommand(USB->read(), &incomingCMD, USB))
       {
-        if(!incomingCMD.funcPtr(incomingCMD.par, &master_settings))
+        if(!incomingCMD.funcPtr(incomingCMD.par, &master_settings, buf, &len))
         {
-          len = sprintf(buf, "ERROR setting command\n\r");
-          udi_cdc_write_buf(buf, len);
-        }        
+          len = sprintf((char*)buf, "ERROR setting command\n\r");
+        }
       } 
       else
       {
-        len = sprintf(buf, "Command syntax ERROR\n\r");
-        udi_cdc_write_buf(buf, len);
+        len = sprintf((char*)buf, "Command syntax ERROR\n\r");
       }
+      USB->printBuf(buf, len);
     }
   }
   

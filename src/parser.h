@@ -11,6 +11,7 @@
 #define PARSER_H_
 
 #include "core.h"
+#include "communication.h"
 
 #define TRUE	1
 #define FALSE	0
@@ -57,20 +58,20 @@
 typedef struct
 {
   uint8_t cmd;
-  bool (*funcPtr)(int32_t*, daq_settings_t*);
+  bool (*funcPtr)(int32_t*, daq_settings_t*, uint8_t*, uint8_t*);
   int32_t par[4];
 }CMD_t;
 
-bool parseCommand (uint8_t CMD, CMD_t *parsedCMD);
-bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr);
+bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface);
+bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInterface);
 
-bool StartACQ (int32_t *parPtr, daq_settings_t *settings);
-bool StartFastACQ (int32_t *parPtr, daq_settings_t *settings);
-bool StopACQ (int32_t *parPtr, daq_settings_t *settings);
-bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings);
-bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings);
-bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings);
-bool SetSequencer (int32_t *parPtr, daq_settings_t *settings);
-bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings);
+bool StartACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
+bool StartFastACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
+bool StopACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
+bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
+bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
+bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
+bool SetSequencer (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
+bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
 
 #endif /* PARSER_H_ */

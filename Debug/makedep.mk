@@ -16,6 +16,8 @@ src\ASF\sam\drivers\udp\udp_device.c
 
 src\ASF\sam\drivers\wdt\wdt.c
 
+src\communication.c
+
 src\core.c
 
 src\parser.c
