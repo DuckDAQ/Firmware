@@ -29,7 +29,7 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 #include <asf.h>
-#include "communication.h"
+#include "comInterface.h"
 #include "core.h"
 #include "parser.h"
 
@@ -111,20 +111,18 @@ int main (void)
     CMD_t incomingCMD;
     if(USB->available())
     {
-      uint8_t len = 0;
-      uint8_t buf[50];
       if (parseCommand(USB->read(), &incomingCMD, USB))
       {
-        if(!incomingCMD.funcPtr(incomingCMD.par, &master_settings, buf, &len))
+        if(!incomingCMD.funcPtr(incomingCMD.par, &master_settings, USB))
         {
-          len = sprintf((char*)buf, "ERROR setting command\n\r");
+          USB->len = sprintf((char*)USB->buf, "ERROR setting command\n\r");
         }
       } 
       else
       {
-        len = sprintf((char*)buf, "Command syntax ERROR\n\r");
+        USB->len = sprintf((char*)USB->buf, "Command syntax ERROR\n\r");
       }
-      USB->printBuf(buf, len);
+      USB->printBuf(USB->buf, USB->len);
     }
   }
   

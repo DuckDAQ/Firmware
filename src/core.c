@@ -6,7 +6,6 @@
  */
 #include <asf.h>
 #include "core.h"
-#include "parser.h"
 
 //PDC(peripheral DMA controller) data packet for transfer. Nastavimo mu start in size
 pdc_packet_t adc_pdc1, adc_pdc2;
@@ -81,25 +80,11 @@ void timer_set_compare_time (uint32_t tim)
 	tc_write_rc(TC0, TIMER_CH, tim);
 }
 
-void validate_settings (daq_settings_t *settings)
-{
-	if(settings->acqusitionTime < 10) {settings->acqusitionTime = 10;}
-	if(settings->acqusitionTime > 100000) {settings->acqusitionTime = 100000;}
-	if(settings->acquisitionNbr > DAQ_MAX_ACQ_NB) {settings->acquisitionNbr = DAQ_MAX_ACQ_NB;}
-	if(settings->averaging > DAQ_MAX_AVG_NB) {settings->averaging = DAQ_MAX_AVG_NB;}
-	if(settings->channels > (DAQ_CHANNEL_1 | DAQ_CHANNEL_2 | DAQ_CHANNEL_3 | DAQ_CHANNEL_4))
-	{
-		settings->averaging = (DAQ_CHANNEL_1 | DAQ_CHANNEL_2 | DAQ_CHANNEL_3 | DAQ_CHANNEL_4);
-	}
-}
 
 void core_configure (daq_settings_t *settings)
 {
 	uint32_t n;
 	//volatile uint32_t dummy;
-
-	//validate settings
-	validate_settings(settings);
 
 	//clear averaging accumulator
 	core_clear_avg_acuum ();

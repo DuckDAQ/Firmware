@@ -2,12 +2,12 @@
  * communication.h
  *
  * Created: 9.4.2019 21:17:07
- *  Author: Luka
+ *  Author: Hrastovc
  */ 
 
 
-#ifndef COMMUNICATION_H_
-#define COMMUNICATION_H_
+#ifndef COMINTERFACE_H_
+#define COMINTERFACE_H_
 
 #include <stdio.h>
 
@@ -22,11 +22,10 @@ typedef struct
   uint8_t (*read)(void);
   uint8_t (*write)(uint8_t*);
   uint8_t (*printBuf)(uint8_t*, uint8_t);
-  void (*flush)(uint8_t*);
   uint8_t buf[comBufLen];
   uint8_t len;
 }COM_t;
 
 COM_t *getComInterface(void);
 
-#endif /* COMMUNICATION_H_ */
+#endif /* COMINTERFACE_H_ */

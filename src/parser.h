@@ -11,19 +11,10 @@
 #define PARSER_H_
 
 #include "core.h"
-#include "communication.h"
+#include "comInterface.h"
 
 #define TRUE	1
 #define FALSE	0
-
-//Packet number definitions
-#define DAQ_START				    0x10		
-#define DAQ_STOP				    0x20
-#define DAQ_SET_FREQUENCY		0x11
-#define DAQ_SET_SEQUENCER		0x18
-#define DAQ_SET_SAMPLE_NBR  0x12
-#define DAQ_SET_CYCLE_NBR		0x22
-#define DAQ_SET_ANALOG_OUT	0x32
 
 // Command list
 #define CMD_START_ACQ			        'S'
@@ -58,20 +49,20 @@
 typedef struct
 {
   uint8_t cmd;
-  bool (*funcPtr)(int32_t*, daq_settings_t*, uint8_t*, uint8_t*);
+  bool (*funcPtr)(int32_t*, daq_settings_t*, COM_t *comInterface);
   int32_t par[4];
 }CMD_t;
 
 bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface);
 bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInterface);
 
-bool StartACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
-bool StartFastACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
-bool StopACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
-bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
-bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
-bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
-bool SetSequencer (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
-bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len);
+bool StartACQ (int32_t *parPtr, daq_settings_t *settings,  COM_t *comInterface);
+bool StartFastACQ (int32_t *parPtr, daq_settings_t *settings,  COM_t *comInterface);
+bool StopACQ (int32_t *parPtr, daq_settings_t *settings,  COM_t *comInterface);
+bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings,  COM_t *comInterface);
+bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings,  COM_t *comInterface);
+bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings,  COM_t *comInterface);
+bool SetSequencer (int32_t *parPtr, daq_settings_t *settings,  COM_t *comInterface);
+bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings,  COM_t *comInterface);
 
 #endif /* PARSER_H_ */

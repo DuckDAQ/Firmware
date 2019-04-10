@@ -637,10 +637,10 @@
     <Compile Include="src\ASF\sam\drivers\wdt\wdt.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\communication.c">
+    <Compile Include="src\comInterface.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\communication.h">
+    <Compile Include="src\comInterface.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\core.c">

@@ -69,7 +69,7 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
 {
   bool result = FALSE;	//set result to false
   uint8_t buf[MAX_PARAMETER_COUNT][MAX_PARAMETER_LENGHT]; //receive parameter buffer
-  uint8_t newChar = 0, prevChar = 0, currentPar = 0, prevIdx = 0, idx = 0;
+  uint8_t newChar = 0, currentPar = 0, prevIdx = 0, idx = 0;
 
   while(!result && timeout){  //wait for complete parameters or timeout
     if(comInterface->available()){ //was new char received?
@@ -90,7 +90,7 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
       }
       else if(newChar == '\b')  //backspace remove previous char
       {
-        if (prevChar == ',' && currentPar)  //go to previous parameter
+        if (buf[currentPar][idx - 1] == ',' && currentPar)  //go to previous parameter
         {
           currentPar--; //go to previous parameter
           idx = prevIdx + 1;  //go to new index in previous parameter
@@ -104,7 +104,6 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
         buf[currentPar][idx] = newChar; //save new char to parameter buffer
         idx++; //go to new char in parameter buffer
       }
-      prevChar = newChar; //save char in case of backspace
       prevIdx = idx;  //save idx in case of backspace
       newChar = 0; //reset char
     }
@@ -119,45 +118,45 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
 }
 
 
-bool StartACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len) //start acquisition
+bool StartACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface) //start acquisition
 {
   bool result = FALSE;	//set result to false
   
   settings->binMode = (uint8_t)ASCII_MODE;  //set parameter
   core_configure(settings); //configure core with new settings
   //core_start();  //start core
-  *len = sprintf((char*)buf, "Acquisition started in ASCII\n\r"); //print msg to inform user
+  comInterface->len = sprintf((char*)comInterface->buf, "Acquisition started in ASCII\n\r"); //print msg to inform user
   result = TRUE;
   
   return result;	//return result
 }
 
-bool StartFastACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len) //start acquisition in binary
+bool StartFastACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface) //start acquisition in binary
 {
   bool result = FALSE;	//set result to false
   
   settings->binMode = (uint8_t)FAST_MODE;  //set parameter
   core_configure(settings); //configure core with new settings
   //core_start()  //start core
-  *len = sprintf((char*)buf, "Acquisition started in binary\n\r"); //print msg to inform user
+  comInterface->len = sprintf((char*)comInterface->buf, "Acquisition started in binary\n\r"); //print msg to inform user
   result = TRUE;
   
   return result;	//return result
 }
 
-bool StopACQ (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len)  //stop acquisition
+bool StopACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)  //stop acquisition
 {
   bool result = FALSE;	//set result to false
   
   core_configure(settings); //configure core with new settings
   //TODO: call function to stop core
-  *len = sprintf((char*)buf, "Acquisition stopped\n\r"); //print msg to inform user
+  comInterface->len = sprintf((char*)comInterface->buf, "Acquisition stopped\n\r"); //print msg to inform user
   result = TRUE;
   
   return result;	//return result
 }
 
-bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len)  //set sample period
+bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)  //set sample period
 {
   bool result = FALSE;	//set result to false
   
@@ -165,14 +164,14 @@ bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, u
   {
     settings->acqusitionTime = (uint16_t)*parPtr;  //set parameter
     core_configure(settings); //configure core with new settings
-    *len = sprintf((char*)buf, "Sample period set to %u uS\n\r", settings->acqusitionTime); //print msg to inform user
+    comInterface->len = sprintf((char*)comInterface->buf, "Sample period set to %u uS\n\r", settings->acqusitionTime); //print msg to inform user
     result = TRUE;
   }
   
   return result;	//return result
 }
 
-bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len)  //set averaging
+bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)  //set averaging
 {
   bool result = FALSE;	//set result to false
   
@@ -180,14 +179,14 @@ bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, u
   {
     settings->averaging = (uint16_t)*parPtr;  //set parameter
     core_configure(settings); //configure core with new settings
-    *len = sprintf((char*)buf, "DAQ will attempt to take %u samples per channel\n\r", settings->averaging); //print msg to inform user
+    comInterface->len = sprintf((char*)comInterface->buf, "DAQ will attempt to take %u samples per channel\n\r", settings->averaging); //print msg to inform user
     result = TRUE;
   }
   
   return result;	//return result
 }
 
-bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len) //set number of samples
+bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface) //set number of samples
 {
   bool result = FALSE;	//set result to false
   
@@ -195,14 +194,14 @@ bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf
   {
     settings->acquisitionNbr =  (uint16_t)*parPtr;  //set parameter
     core_configure(settings); //configure core with new settings
-    *len = sprintf((char*)buf, "DAQ will sample all enabled channels %u times\n\r", settings->acquisitionNbr); //print msg to inform user
+    comInterface->len = sprintf((char*)comInterface->buf, "DAQ will sample all enabled channels %u times\n\r", settings->acquisitionNbr); //print msg to inform user
     result = TRUE;
   }
   
   return result;	//return result
 }
 
-bool SetSequencer (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len) //enable channels and set channel sequence
+bool SetSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface) //enable channels and set channel sequence
 {
   bool result = FALSE;	//set result to false
   
@@ -213,14 +212,14 @@ bool SetSequencer (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint
   {
     for(uint8_t i = 0; i < 4; i++)  settings->sequence[i] = (uint8_t)*(parPtr + i);  //set parameters
     core_configure(settings); //configure core with new settings
-    *len = sprintf((char*)buf, "Sequence set to: %u, %u, %u, %u\n\r", settings->sequence[0], settings->sequence[1], settings->sequence[2], settings->sequence[3]); //print msg to inform user
+    comInterface->len = sprintf((char*)comInterface->buf, "Sequence set to: %u, %u, %u, %u\n\r", settings->sequence[0], settings->sequence[1], settings->sequence[2], settings->sequence[3]); //print msg to inform user
     result = TRUE;
   }  
   
   return result;	//return result
 }
 
-bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8_t *len)  //set DAC output value
+bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)  //set DAC output value
 {
   bool result = FALSE;	//set result to false
   
@@ -229,7 +228,7 @@ bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings, uint8_t *buf, uint8
   {
     settings->DACval[(uint8_t)*parPtr] = (int16_t)*(parPtr + 1);  //set parameter
     core_configure(settings); //configure core with new settings
-    *len = sprintf((char*)buf, "DAC channel %u set to %d mV\n\r", (uint8_t)*(parPtr + 0), settings->DACval[(uint8_t)*parPtr]); //print msg to inform user
+    comInterface->len = sprintf((char*)comInterface->buf, "DAC channel %u set to %d mV\n\r", (uint8_t)*(parPtr + 0), settings->DACval[(uint8_t)*parPtr]); //print msg to inform user
     result = TRUE;
   }
   

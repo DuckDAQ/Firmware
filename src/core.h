@@ -100,8 +100,5 @@ void core_clear_avg_acuum (void);
 	#if ADC_CORE_DEBUG == 1
 	void pio_init (void);
 	#endif
-/*
-Preveri nastavitve DAQ, v primeru da so parametri out-of-range, jih nastavi na primerno vrednost.
-*/
-void validate_settings (daq_settings_t *settings);
+  
 #endif /* CORE_H_ */

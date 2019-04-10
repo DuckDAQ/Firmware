@@ -5,7 +5,7 @@
  *  Author: Hrastovc
  */ 
 
-#include "communication.h"
+#include "comInterface.h"
 #include <asf.h>
 #include <stdio.h>
 
