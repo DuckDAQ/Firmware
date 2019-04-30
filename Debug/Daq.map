@@ -6630,7 +6630,6 @@ Discarded input sections
  .debug_macro   0x00000000       0x10 src/main.o
  .debug_macro   0x00000000       0x7c src/main.o
  .debug_macro   0x00000000      0x34e src/main.o
- .debug_macro   0x00000000       0xa6 src/main.o
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/arm/arm-gnu-toolchain/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc.a(lib_a-atoi.o)
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/arm/arm-gnu-toolchain/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc.a(lib_a-atoi.o)
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/arm/arm-gnu-toolchain/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc.a(lib_a-atoi.o)
@@ -8279,7 +8278,7 @@ OUTPUT(Daq.elf elf32-littlearm)
  .debug_aranges
                 0x00000ce8       0x20 src/main.o
 
-.debug_macro    0x00000000    0x1731e
+.debug_macro    0x00000000    0x173c0
  .debug_macro   0x00000000      0x4f4 src/ASF/common/services/sleepmgr/sam/sleepmgr.o
  .debug_macro   0x000004f4      0x8ce src/ASF/common/services/sleepmgr/sam/sleepmgr.o
  .debug_macro   0x00000dc2      0x16d src/ASF/common/services/sleepmgr/sam/sleepmgr.o
@@ -8450,7 +8449,8 @@ OUTPUT(Daq.elf elf32-littlearm)
  .debug_macro   0x00016ae9       0x10 src/ASF/sam/utils/syscalls/gcc/syscalls.o
  .debug_macro   0x00016af9       0x35 src/ASF/sam/utils/syscalls/gcc/syscalls.o
  .debug_macro   0x00016b2e      0x122 src/ASF/sam/utils/syscalls/gcc/syscalls.o
- .debug_macro   0x00016c50      0x6ce src/main.o
+ .debug_macro   0x00016c50      0x6c4 src/main.o
+ .debug_macro   0x00017314       0xac src/main.o
 
 .debug_line     0x00000000    0x138e2
  .debug_line    0x00000000      0xab0 src/ASF/common/services/sleepmgr/sam/sleepmgr.o
@@ -8478,7 +8478,7 @@ OUTPUT(Daq.elf elf32-littlearm)
  .debug_line    0x000125d0      0x40b src/ASF/sam/utils/syscalls/gcc/syscalls.o
  .debug_line    0x000129db      0xf07 src/main.o
 
-.debug_str      0x00000000    0x53707
+.debug_str      0x00000000    0x5372d
  .debug_str     0x00000000    0x45365 src/ASF/common/services/sleepmgr/sam/sleepmgr.o
                               0x45774 (size before relaxing)
  .debug_str     0x00045365     0x482e src/ASF/common/services/usb/class/cdc/device/udi_cdc.o
@@ -8497,35 +8497,35 @@ OUTPUT(Daq.elf elf32-littlearm)
                               0x4ac13 (size before relaxing)
  .debug_str     0x0005048e      0x6c2 src/core.o
                               0x4bab2 (size before relaxing)
- .debug_str     0x00050b50      0xc61 src/parser.o
-                              0x4bbf3 (size before relaxing)
- .debug_str     0x000517b1      0x231 src/ASF/common/services/usb/class/cdc/device/udi_cdc_desc.o
+ .debug_str     0x00050b50      0xc87 src/parser.o
+                              0x4bbce (size before relaxing)
+ .debug_str     0x000517d7      0x231 src/ASF/common/services/usb/class/cdc/device/udi_cdc_desc.o
                               0x494c1 (size before relaxing)
- .debug_str     0x000519e2      0x34e src/ASF/common/services/clock/sam3s/sysclk.o
+ .debug_str     0x00051a08      0x34e src/ASF/common/services/clock/sam3s/sysclk.o
                               0x46cc7 (size before relaxing)
- .debug_str     0x00051d30      0x11b src/ASF/sam/drivers/pdc/pdc.o
+ .debug_str     0x00051d56      0x11b src/ASF/sam/drivers/pdc/pdc.o
                               0x457ab (size before relaxing)
- .debug_str     0x00051e4b      0x4d0 src/ASF/sam/drivers/pio/pio.o
+ .debug_str     0x00051e71      0x4d0 src/ASF/sam/drivers/pio/pio.o
                               0x4623e (size before relaxing)
- .debug_str     0x0005231b      0x551 src/ASF/sam/drivers/pmc/pmc.o
+ .debug_str     0x00052341      0x551 src/ASF/sam/drivers/pmc/pmc.o
                               0x46021 (size before relaxing)
- .debug_str     0x0005286c      0x29e src/ASF/sam/drivers/tc/tc.o
+ .debug_str     0x00052892      0x29e src/ASF/sam/drivers/tc/tc.o
                               0x45990 (size before relaxing)
- .debug_str     0x00052b0a      0x160 src/ASF/sam/drivers/pmc/sleep.o
+ .debug_str     0x00052b30      0x160 src/ASF/sam/drivers/pmc/sleep.o
                               0x464df (size before relaxing)
- .debug_str     0x00052c6a       0x36 src/ASF/common/boards/user_board/init.o
+ .debug_str     0x00052c90       0x36 src/ASF/common/boards/user_board/init.o
                               0x4ab71 (size before relaxing)
- .debug_str     0x00052ca0       0x65 src/ASF/common/utils/interrupt/interrupt_sam_nvic.o
+ .debug_str     0x00052cc6       0x65 src/ASF/common/utils/interrupt/interrupt_sam_nvic.o
                               0x45638 (size before relaxing)
- .debug_str     0x00052d05       0x4d src/ASF/sam/utils/cmsis/sam3s/source/templates/exceptions.o
+ .debug_str     0x00052d2b       0x4d src/ASF/sam/utils/cmsis/sam3s/source/templates/exceptions.o
                               0x45601 (size before relaxing)
- .debug_str     0x00052d52       0xd4 src/ASF/sam/utils/cmsis/sam3s/source/templates/gcc/startup_sam3s.o
+ .debug_str     0x00052d78       0xd4 src/ASF/sam/utils/cmsis/sam3s/source/templates/gcc/startup_sam3s.o
                               0x456fd (size before relaxing)
- .debug_str     0x00052e26      0x15c src/ASF/sam/utils/cmsis/sam3s/source/templates/system_sam3s.o
+ .debug_str     0x00052e4c      0x15c src/ASF/sam/utils/cmsis/sam3s/source/templates/system_sam3s.o
                               0x458cf (size before relaxing)
- .debug_str     0x00052f82      0x75b src/ASF/sam/utils/syscalls/gcc/syscalls.o
+ .debug_str     0x00052fa8      0x75b src/ASF/sam/utils/syscalls/gcc/syscalls.o
                                0x73f7 (size before relaxing)
- .debug_str     0x000536dd       0x2a src/main.o
+ .debug_str     0x00053703       0x2a src/main.o
                               0x4bb7d (size before relaxing)
 
 .debug_loc      0x00000000     0x7a20

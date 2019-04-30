@@ -73,6 +73,7 @@ typedef struct
 	channel_bitmask_t channels;	//enabled channels bitmask
   uint8_t binMode;
   uint8_t sequence[4];
+  ADC_gain adcGain;
 }daq_settings_t;
 
 typedef struct
@@ -82,6 +83,13 @@ typedef struct
 	volatile uint32_t new_data;
 }daq_measured_data_t;
 
+
+typedef enum //For ADC gain (register ADC->ADC_CGR). ADC channels are always differential!
+{
+	ADC_GAIN_0_5 = 0b00, //Gain 0.5
+	ADC_GAIN_1 = 0b01, //Gain 1
+	ADC_GAIN_2 = 0b10 //Gain 2
+}ADC_gain;
 //**************************************************************Functions***********************************************
 void core_init (void);
 void timer_set_compare_time (uint32_t tim);

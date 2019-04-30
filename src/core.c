@@ -48,7 +48,10 @@ void core_init (void)
 	//adc_check(ADC, sysclk_get_cpu_hz());
 	ADC->ADC_COR |= (ADC_COR_DIFF0 | ADC_COR_DIFF1 | ADC_COR_DIFF2 | ADC_COR_DIFF3
 					 | ADC_COR_DIFF4 | ADC_COR_DIFF5 | ADC_COR_DIFF6 | ADC_COR_DIFF7); // set channels to differential
-	ADC->ADC_CGR = 0x00005555; // set gain to 1
+	//ADC->ADC_CGR = 0x00005555; // set gain to 1
+	//TODO: replace with 
+	int gain = 0x11;
+	ADC -> ADC_CGR = ( ADC_CGR_GAIN0(gain) | ADC_CGR_GAIN1(gain) | ADC_CGR_GAIN2(gain) | ADC_CGR_GAIN3(gain))
 	adc_set_bias_current(ADC, 1);
 	#if ADC_CORE_DEBUG == 1
 		pio_init();
@@ -80,6 +83,21 @@ void timer_set_compare_time (uint32_t tim)
 	tc_write_rc(TC0, TIMER_CH, tim);
 }
 
+/*
+TODO:
+-nastavi periodo vzorcenja
+settings->acqusitionTime
+
+-nastavi st vzorcev za povprecenje
+settings->averaging
+
+-nastavi st zaporednih meritev (0=neskoncno, >0 = koncno stevilo meritev)
+settings->acquisitionNbr
+
+-nastavi zaporedje kanalov (0=brez, 1-4 = kanal)
+settings->sequence[i]
+
+*/
 
 void core_configure (daq_settings_t *settings)
 {
