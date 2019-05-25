@@ -75,68 +75,74 @@ typedef enum dacc_rc {
 
 
 void dacc_reset(Dacc *p_dacc);
-#if (SAMV70 || SAMV71 || SAME70 || SAMS70)
+
+#if (SAMV70 || SAMV71 || SAME70 || SAMS70) //ne
 uint32_t dacc_set_trigger(Dacc *p_dacc, uint32_t ul_trigger, uint32_t channel);
-#else
+#else //ja
 uint32_t dacc_set_trigger(Dacc *p_dacc, uint32_t ul_trigger);
 #endif
-#if (SAMV70 || SAMV71 || SAME70 || SAMS70)
+
+#if (SAMV70 || SAMV71 || SAME70 || SAMS70) //ne
 void dacc_disable_trigger(Dacc *p_dacc, uint32_t channel);
-#else
+#else //ja
 void dacc_disable_trigger(Dacc *p_dacc);
 #endif
+
 uint32_t dacc_set_transfer_mode(Dacc *p_dacc, uint32_t ul_mode);
 void dacc_enable_interrupt(Dacc *p_dacc, uint32_t ul_interrupt_mask);
 void dacc_disable_interrupt(Dacc *p_dacc, uint32_t ul_interrupt_mask);
 uint32_t dacc_get_interrupt_mask(Dacc *p_dacc);
 uint32_t dacc_get_interrupt_status(Dacc *p_dacc);
+
 #if (SAMV70 || SAMV71 || SAME70 || SAMS70)
 void dacc_write_conversion_data(Dacc *p_dacc, uint32_t ul_data, uint32_t channel);
-#else
+#else //ja
 void dacc_write_conversion_data(Dacc *p_dacc, uint32_t ul_data);
 #endif
+
 void dacc_set_writeprotect(Dacc *p_dacc, uint32_t ul_enable);
 uint32_t dacc_get_writeprotect_status(Dacc *p_dacc);
-#if !(SAM4L || SAMV70 || SAMV71 || SAME70 || SAMS70)
+
+#if !(SAM4L || SAMV70 || SAMV71 || SAME70 || SAMS70) //ja
 Pdc *dacc_get_pdc_base(Dacc *p_dacc);
 #endif
 
-#if (SAM3N) || (SAM4L) || (SAM4N) || defined(__DOXYGEN__)
+#if (SAM3N) || (SAM4L) || (SAM4N) || defined(__DOXYGEN__) //ne
 void dacc_enable(Dacc *p_dacc);
 void dacc_disable(Dacc *p_dacc);
-uint32_t dacc_set_timing(Dacc *p_dacc, uint32_t ul_startup,
-		uint32_t ul_clock_divider);
+uint32_t dacc_set_timing(Dacc *p_dacc, uint32_t ul_startup,uint32_t ul_clock_divider);
 #endif
 
-#if (SAM4E)
-uint32_t dacc_set_timing(Dacc *p_dacc, 
-		uint32_t ul_maxs,uint32_t ul_startup);
+#if (SAM4E) //ne
+uint32_t dacc_set_timing(Dacc *p_dacc, uint32_t ul_maxs,uint32_t ul_startup);
 #endif
 
-#if (SAM3S) || (SAM3XA) || (SAM4S) || (SAM4E) || (SAMV70) || (SAMV71) || (SAME70) || (SAMS70) || defined(__DOXYGEN__)
-#if !(SAMV70 || SAMV71 || SAME70 || SAMS70)
-uint32_t dacc_set_channel_selection(Dacc *p_dacc, uint32_t ul_channel);
-void dacc_enable_flexible_selection(Dacc *p_dacc);
-#endif
+#if (SAM3S) || (SAM3XA) || (SAM4S) || (SAM4E) || (SAMV70) || (SAMV71) || (SAME70) || (SAMS70) || defined(__DOXYGEN__) //ja
+	
+	#if !(SAMV70 || SAMV71 || SAME70 || SAMS70) //ja
+	uint32_t dacc_set_channel_selection(Dacc *p_dacc, uint32_t ul_channel);
+	void dacc_enable_flexible_selection(Dacc *p_dacc);
+	#endif
 
-#if (SAM3S) || (SAM3XA)
-uint32_t dacc_set_power_save(Dacc *p_dacc, uint32_t ul_sleep_mode,
-		uint32_t ul_fast_wakeup_mode);
-#endif
+	#if (SAM3S) || (SAM3XA) //ja
+	uint32_t dacc_set_power_save(Dacc *p_dacc, uint32_t ul_sleep_mode,uint32_t ul_fast_wakeup_mode);
+	#endif
 
-#if !(SAMV70 || SAMV71 || SAME70 || SAMS70 || SAM4E)
-uint32_t dacc_set_timing(Dacc *p_dacc, uint32_t ul_refresh, uint32_t ul_maxs,
-		uint32_t ul_startup);
-#endif
-#if (SAMV70 || SAMV71 || SAME70 || SAMS70)
-uint32_t dacc_set_prescaler(Dacc *p_dacc, uint32_t ul_prescaler);
-uint32_t dacc_set_osr(Dacc *p_dacc, uint32_t channel, uint32_t ul_osr);
-#endif
-uint32_t dacc_enable_channel(Dacc *p_dacc, uint32_t ul_channel);
-uint32_t dacc_disable_channel(Dacc *p_dacc, uint32_t ul_channel);
-uint32_t dacc_get_channel_status(Dacc *p_dacc);
-uint32_t dacc_set_analog_control(Dacc *p_dacc, uint32_t ul_analog_control);
-uint32_t dacc_get_analog_control(Dacc *p_dacc);
+	#if !(SAMV70 || SAMV71 || SAME70 || SAMS70 || SAM4E) //ja
+	uint32_t dacc_set_timing(Dacc *p_dacc, uint32_t ul_refresh, uint32_t ul_maxs,uint32_t ul_startup);
+	#endif
+
+	#if (SAMV70 || SAMV71 || SAME70 || SAMS70) //ne
+	uint32_t dacc_set_prescaler(Dacc *p_dacc, uint32_t ul_prescaler);
+	uint32_t dacc_set_osr(Dacc *p_dacc, uint32_t channel, uint32_t ul_osr);
+	#endif
+
+	//ja
+	uint32_t dacc_enable_channel(Dacc *p_dacc, uint32_t ul_channel);
+	uint32_t dacc_disable_channel(Dacc *p_dacc, uint32_t ul_channel);
+	uint32_t dacc_get_channel_status(Dacc *p_dacc);
+	uint32_t dacc_set_analog_control(Dacc *p_dacc, uint32_t ul_analog_control);
+	uint32_t dacc_get_analog_control(Dacc *p_dacc);
 #endif
 
 /// @cond 0
