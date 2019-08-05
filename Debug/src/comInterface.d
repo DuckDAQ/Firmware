@@ -130,6 +130,7 @@ src/comInterface.d src/comInterface.o: ../src/comInterface.c \
  ../src/ASF/common/services/usb/class/cdc/device/udi_cdc.h \
  ../src/config/conf_usb.h \
  ../src/ASF/common/services/usb/class/cdc/device/udi_cdc_conf.h \
+ ../src/comInterface.h ../src/core.h \
  ../src/ASF/common/services/usb/usb_protocol.h \
  ../src/ASF/common/services/usb/usb_atmel.h \
  ../src/ASF/common/services/usb/udc/udd.h \
@@ -417,6 +418,10 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/config/conf_usb.h:
 
 ../src/ASF/common/services/usb/class/cdc/device/udi_cdc_conf.h:
+
+../src/comInterface.h:
+
+../src/core.h:
 
 ../src/ASF/common/services/usb/usb_protocol.h:
 

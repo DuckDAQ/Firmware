@@ -49,8 +49,6 @@
 
 #include "compiler.h"
 
-#warning You must refill the following definitions with a correct values
-
 /**
  * USB Device Configuration
  * @{
@@ -126,8 +124,8 @@
 //! Interface callback definition
 #define  UDI_CDC_ENABLE_EXT(port)          true
 #define  UDI_CDC_DISABLE_EXT(port)
-#define  UDI_CDC_RX_NOTIFY(port)
-#define  UDI_CDC_TX_EMPTY_NOTIFY(port)
+//#define  UDI_CDC_RX_NOTIFY(port)
+//#define  UDI_CDC_TX_EMPTY_NOTIFY(port)
 #define  UDI_CDC_SET_CODING_EXT(port,cfg)
 #define  UDI_CDC_SET_DTR_EXT(port,set)
 #define  UDI_CDC_SET_RTS_EXT(port,set)
@@ -136,10 +134,10 @@
 // extern bool my_callback_cdc_enable(void);
 // #define UDI_CDC_DISABLE_EXT(port) my_callback_cdc_disable()
 // extern void my_callback_cdc_disable(void);
-// #define  UDI_CDC_RX_NOTIFY(port) my_callback_rx_notify(port)
-// extern void my_callback_rx_notify(uint8_t port);
-// #define  UDI_CDC_TX_EMPTY_NOTIFY(port) my_callback_tx_empty_notify(port)
-// extern void my_callback_tx_empty_notify(uint8_t port);
+#define  UDI_CDC_RX_NOTIFY(port) udi_cdc_callback_rx_notify(port)
+// extern void udi_cdc_callback_rx_notify(uint8_t port);
+#define  UDI_CDC_TX_EMPTY_NOTIFY(port) udi_cdc_callback_tx_empty_notify(port)
+// extern void udi_cdc_callback_tx_empty_notify(uint8_t port);
 // #define  UDI_CDC_SET_CODING_EXT(port,cfg) my_callback_config(port,cfg)
 // extern void my_callback_config(uint8_t port, usb_cdc_line_coding_t * cfg);
 // #define  UDI_CDC_SET_DTR_EXT(port,set) my_callback_cdc_set_dtr(port,set)
@@ -149,10 +147,10 @@
 
 //! Define it when the transfer CDC Device to Host is a low rate (<512000 bauds)
 //! to reduce CDC buffers size
-#define  UDI_CDC_LOW_RATE
+//#define  UDI_CDC_LOW_RATE
 
 //! Default configuration of communication port
-#define  UDI_CDC_DEFAULT_RATE             115200
+#define  UDI_CDC_DEFAULT_RATE             1000000
 #define  UDI_CDC_DEFAULT_STOPBITS         CDC_STOP_BITS_1
 #define  UDI_CDC_DEFAULT_PARITY           CDC_PAR_NONE
 #define  UDI_CDC_DEFAULT_DATABITS         8
@@ -166,7 +164,11 @@
  */
 //@}
 
+#define USB_DEVICE_EP_CTRL_SIZE 64
+
 //! The includes of classes and other headers must be done at the end of this file to avoid compile error
 #include "udi_cdc_conf.h"
+#include "comInterface.h"
+#include "core.h"
 
 #endif // _CONF_USB_H_

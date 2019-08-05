@@ -129,6 +129,7 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/ASF/common/services/usb/class/cdc/device/udi_cdc.h \
  ../src/config/conf_usb.h \
  ../src/ASF/common/services/usb/class/cdc/device/udi_cdc_conf.h \
+ ../src/comInterface.h ../src/core.h ../src/comInterface.h \
  ../src/ASF/common/services/usb/usb_protocol.h \
  ../src/ASF/common/services/usb/usb_atmel.h \
  ../src/ASF/common/services/usb/udc/udd.h \
@@ -139,8 +140,7 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/ASF/common/services/usb/udc/udc.h \
  ../src/ASF/common/services/usb/udc/udd.h \
  ../src/ASF/sam/drivers/wdt/wdt.h \
- ../src/ASF/sam/drivers/pio/pio_handler.h ../src/comInterface.h \
- ../src/core.h ../src/parser.h
+ ../src/ASF/sam/drivers/pio/pio_handler.h ../src/core.h ../src/parser.h
 
 ../src/asf.h:
 
@@ -416,6 +416,12 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/common/services/usb/class/cdc/device/udi_cdc_conf.h:
 
+../src/comInterface.h:
+
+../src/core.h:
+
+../src/comInterface.h:
+
 ../src/ASF/common/services/usb/usb_protocol.h:
 
 ../src/ASF/common/services/usb/usb_atmel.h:
@@ -437,8 +443,6 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/ASF/sam/drivers/wdt/wdt.h:
 
 ../src/ASF/sam/drivers/pio/pio_handler.h:
-
-../src/comInterface.h:
 
 ../src/core.h:
 

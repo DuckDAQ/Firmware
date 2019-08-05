@@ -10,6 +10,25 @@
 #include "parser.h"
 
 
+/***************************************************************************************
+* Function prototypes
+****************************************************************************************/
+/* Parser functions */
+bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInterface);
+/* Parameter handlers */
+bool startACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool stopACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setMode (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setSamplePeriod (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setAverageCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setDACvalue (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setADCgain (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setADClowRes (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool setBlockSize (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+
+
 /************************************************************************************//**
 ** \brief     Submits a message to parser.
 ** \param     Command to parse, pointer to command structure, pointer to interface
@@ -20,81 +39,105 @@
 bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
 {
   /* Set result to false. */
-	bool result = FALSE;
-	/* Is command supported? */
-	switch (CMD)
-	{
-  	case CMD_START_ACQ:
+  bool result = FALSE;
+  /* Is command supported? */
+  switch (CMD)
+  {
+    case CMD_START_ACQ:
       /* Save command if needed later */
       parsedCMD->cmd = CMD_START_ACQ;
       /* Set pointer to the command handler */
-      parsedCMD->funcPtr = StartACQ;
+      parsedCMD->funcPtr = startACQ;
       /* wait for termination of line */
       result = getPar(0, PARAMETER_TIMEOUT, NULL, comInterface);
       break;
-  	case CMD_START_FAST_ACQ:
-      /* Save command if needed later */
-      parsedCMD->cmd = CMD_START_FAST_ACQ;
-      /* Set pointer to the command handler */
-      parsedCMD->funcPtr = StartFastACQ;
-      /* wait for termination of line */
-      result = getPar(0, PARAMETER_TIMEOUT, NULL, comInterface);
-      break;
-  	case CMD_STOP_ACQ:
+    case CMD_STOP_ACQ:
       /* Save command if needed later */
       parsedCMD->cmd = CMD_STOP_ACQ;
       /* Set pointer to the command handler */
-      parsedCMD->funcPtr = StopACQ;
+      parsedCMD->funcPtr = stopACQ;
       result = getPar(0, PARAMETER_TIMEOUT, NULL, comInterface);
       break;
-  	case CMD_SET_SAMPLE_PERIOD:
+    case CMD_SET_MODE:
+      /* Save command if needed later */
+      parsedCMD->cmd = CMD_SET_MODE;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = setMode;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    case CMD_SET_SAMPLE_PERIOD:
       /* Save command if needed later */
       parsedCMD->cmd = CMD_SET_SAMPLE_PERIOD;
       /* Set pointer to the command handler */
-      parsedCMD->funcPtr = SetSamplePeriod;
+      parsedCMD->funcPtr = setSamplePeriod;
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
-  	case CMD_SET_AVERAGE_COUNT:
+    case CMD_SET_AVERAGE_COUNT:
       /* Save command if needed later */
       parsedCMD->cmd =  CMD_SET_AVERAGE_COUNT;
       /* Set pointer to the command handler */
-      parsedCMD->funcPtr =  SetAverageCount;
+      parsedCMD->funcPtr = setAverageCount;
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
-  	case CMD_SET_MEASURMENT_COUNT:
+    case CMD_SET_MEASURMENT_COUNT:
       /* Save command if needed later */
       parsedCMD->cmd =  CMD_SET_MEASURMENT_COUNT;
       /* Set pointer to the command handler */
-      parsedCMD->funcPtr =  SetMeasurmentCount;
+      parsedCMD->funcPtr = setMeasurmentCount;
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
-  	case CMD_SET_SEQUENCER:
+    case CMD_SET_ADC_LOW_RESOLUTION:
       /* Save command if needed later */
-      parsedCMD->cmd =  CMD_SET_SEQUENCER;
+      parsedCMD->cmd =  CMD_SET_ADC_LOW_RESOLUTION;
       /* Set pointer to the command handler */
-      parsedCMD->funcPtr = SetSequencer;
+      parsedCMD->funcPtr = setADClowRes;
       /* Get parameters for command or wait for termination of line. */
-      result = getPar(4, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
-  	case CMD_SET_DAC_VALUE:
+    case CMD_SET_BLOCK_SIZE:
       /* Save command if needed later */
-      parsedCMD->cmd =  CMD_SET_DAC_VALUE;
+      parsedCMD->cmd =  CMD_SET_BLOCK_SIZE;
       /* Set pointer to the command handler */
-      parsedCMD->funcPtr = SetDACvalue;
+      parsedCMD->funcPtr = setBlockSize;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    case CMD_SET_ADC_GAIN:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_SET_ADC_GAIN;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = setADCgain;
       /* Get parameters for command or wait for termination of line. */
       result = getPar(2, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
+    case CMD_SET_DAC_VALUE:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_SET_DAC_VALUE;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = setDACvalue;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(2, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    case CMD_SET_SEQUENCER:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_SET_SEQUENCER;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = setSequencer;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(4, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
     /* Command not supported */
-  	default:
+    default:
       /* Reset command */
       parsedCMD->cmd = 0;
       /* Pointer not available */
       parsedCMD->funcPtr = NULL;
       break;
-	}
+  }
   /* Return result */
   return result;
 } /*** end of parseCommand ***/
@@ -113,6 +156,13 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
   bool result = FALSE;
   /* Receive parameter buffer */
   uint8_t buf[MAX_PARAMETER_COUNT][MAX_PARAMETER_LENGHT];
+  for(uint8_t x = 0; x < MAX_PARAMETER_COUNT; x++)
+  {
+    for(uint8_t y = 0; y < MAX_PARAMETER_LENGHT; y++)
+    {
+      buf[x][y] = 0;
+    }
+  }
   uint8_t newChar = 0, currentPar = 0, prevIdx = 0, idx = 0;
   
   /* Wait for complete parameters or timeout. */
@@ -123,7 +173,7 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
     {
       /* Get the char */
       newChar = comInterface->read();
-      /* FSM */
+      
       /* End of command */
       if(newChar == '\r')
       {
@@ -131,13 +181,14 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
         if((parCount == (currentPar + 1) && idx) || !parCount)
         {
           /* Convert all parameters to int */
-          for(uint8_t i = 0; i < parCount; i++) *(parPtr + i) = (int32_t)atoi((char*)buf[i]);
+          for(uint8_t i=0; i<parCount; i++) *(parPtr + i)=(int32_t)atoll((char*)buf[i]);
           /* All parameters received */
           result = TRUE;
         }
-        /* Parameters not received */     
+        /* Parameters not received */
         else timeout = 0;
       }
+      
       /* New parameter */
       else if(newChar == ',')
       {
@@ -146,6 +197,7 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
         /* Set index of new parameter buffer to 0. */
         idx = 0;
       }
+      
       /* Backspace, remove previous char */
       else if(newChar == '\b')
       {
@@ -164,6 +216,7 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
         /* Set previous parameter to 0.  */
         buf[currentPar][idx] = 0;
       }
+      
       /* Got parameter */
       else if((newChar >= '0' && newChar <= '9') || newChar == '-')
       {
@@ -172,6 +225,7 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
         /* Go to new char in parameter buffer */
         idx++;
       }
+      
       /* Save idx in case of backspace. */
       prevIdx = idx;
       /* Reset char */
@@ -196,53 +250,19 @@ bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInter
 ** \return    True if successful, false otherwise.
 **
 ****************************************************************************************/
-bool StartACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+bool startACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
   /* Set result to false. */
   bool result = FALSE;
-  
-  /* Set parameter */
-  settings->binMode = (uint8_t)ASCII_MODE;
-  /* Configure core with new settings. */
-  core_configure(settings);
   /* Start core */
-  //core_start();
+  timerStart();
   /* Print msg to inform user */
-  comInterface->len = sprintf((char*)comInterface->buf, "Acquisition started in ASCII\n\r");
+  comInterface->len = sprintf((char*)comInterface->buf, "Acquisition started\n\r");
   /* Set result */
   result = TRUE;
-  
   /* Return result */
   return result;
 } /*** end of StartACQ ***/
-
-
-/************************************************************************************//**
-** \brief     Start acquisition in binary
-** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
-**            module.
-** \return    True if successful, false otherwise.
-**
-****************************************************************************************/
-bool StartFastACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
-{
-  /* Set result to false. */
-  bool result = FALSE;
-  
-  /* Set parameter */
-  settings->binMode = (uint8_t)FAST_MODE;
-  /* Configure core with new settings. */
-  core_configure(settings); //configure core with new settings
-  /* Start core */
-  //core_start();
-  /* Print msg to inform user */
-  comInterface->len = sprintf((char*)comInterface->buf, "Acquisition started in binary\n\r");
-  /* Set result */
-  result = TRUE;
-  
-  /* Return result */
-  return result;
-} /*** end of StartFastACQ ***/
 
 
 /************************************************************************************//**
@@ -252,23 +272,58 @@ bool StartFastACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 ** \return    True if successful, false otherwise.
 **
 ****************************************************************************************/
-bool StopACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+bool stopACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
   /* Set result to false. */
   bool result = FALSE;
-  
-  /* Configure core with new settings. */
-  core_configure(settings);
   /* Stop core */
-  //TODO: call function to stop core
+  timerStop();
   /* Print msg to inform user */
   comInterface->len = sprintf((char*)comInterface->buf, "Acquisition stopped\n\r");
   /* Set result */
   result = TRUE;
-  
   /* Return result */
   return result;
 } /*** end of StopACQ ***/
+
+
+/************************************************************************************//**
+** \brief     Start acquisition in binary
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
+bool setMode (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+{
+  /* Set result to false. */
+  bool result = FALSE;
+
+  /* Is parameter is range? */
+  if(*parPtr >= MODE_LOWRANGE && *parPtr <= MODE_HIGHRANGE)
+  {
+    /* Set parameter */
+    settings->mode = (uint8_t)*parPtr;
+    /* Print msg to inform user */
+    switch((uint8_t)*parPtr)
+    {
+      case ASCII_MODE:
+        comInterface->len = sprintf((char*)comInterface->buf,
+                                    "Acquisition started in ASCII\n\r");
+        break;
+      
+      case BIN_MODE:
+        comInterface->len = sprintf((char*)comInterface->buf,
+                                    "Acquisition started in binary\n\r");
+        break;
+    }
+    /* Set result */
+    result = TRUE;
+  }
+
+  /* Return result */
+  return result;
+} /*** end of StartFastACQ ***/
 
 
 /************************************************************************************//**
@@ -278,7 +333,7 @@ bool StopACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 ** \return    True if successful, false otherwise.
 **
 ****************************************************************************************/
-bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+bool setSamplePeriod (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
   /* Set result to false. */
   bool result = FALSE;
@@ -287,14 +342,16 @@ bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
   if(*parPtr >= SAMPLE_PERIOD_LOWRANGE && *parPtr <= SAMPLE_PERIOD_HIGHRANGE)
   {
     /* Set parameter */
-    settings->acqusitionTime = (uint16_t)*parPtr;
-    /* Configure core with new settings. */
-    core_configure(settings);
-    /* Print msg to inform user */
-    comInterface->len = sprintf((char*)comInterface->buf, "Sample period set to %u uS\n\r",
-                                settings->acqusitionTime);
-    /* Set result */
-    result = TRUE;
+    settings->acqusitionTime = (uint32_t)*parPtr;
+    if(timerSetTimePeriod())
+    {
+      /* Print msg to inform user */
+      comInterface->len = sprintf((char*)comInterface->buf,
+                                  "Sample period set to %u us\n\r",
+                                  settings->acqusitionTime);
+      /* Set result */
+      result = TRUE;
+    }
   }
   
   /* Return result */
@@ -309,7 +366,7 @@ bool SetSamplePeriod (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
 ** \return    True if successful, false otherwise.
 **
 ****************************************************************************************/
-bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+bool setAverageCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
   /* Set result to false. */
   bool result = FALSE;
@@ -319,8 +376,6 @@ bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
   {
     /* Set parameter */
     settings->averaging = (uint16_t)*parPtr;
-    /* Configure core with new settings. */
-    core_configure(settings);
     /* Print msg to inform user */
     comInterface->len = sprintf((char*)comInterface->buf,
                                 "DAQ will attempt to take %u samples per channel\n\r",
@@ -341,7 +396,7 @@ bool SetAverageCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
 ** \return    True if successful, false otherwise.
 **
 ****************************************************************************************/
-bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+bool setMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
   /* Set result to false. */
   bool result = FALSE;
@@ -351,8 +406,6 @@ bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comIn
   {
     /* Set parameter */
     settings->acquisitionNbr = (uint16_t)*parPtr;
-    /* Configure core with new settings. */
-    core_configure(settings);
     /* Print msg to inform user */
     comInterface->len = sprintf((char*)comInterface->buf,
                                 "DAQ will sample all enabled channels %u times\n\r",
@@ -373,12 +426,11 @@ bool SetMeasurmentCount (int32_t *parPtr, daq_settings_t *settings, COM_t *comIn
 ** \return    True if successful, false otherwise.
 **
 ****************************************************************************************/
-bool SetSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+bool setSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
-  /* Set result to false. */
-  bool result = FALSE;
-  
-  /* Is parameter is range? */
+   /* Set result to false. */
+   bool result = FALSE;
+   /* Is parameter in range? */
   if((*(parPtr + 0) >= SEQUENCER_LOWRANGE && *(parPtr + 0) <= SEQUENCER_HIGHRANGE) &&
      (*(parPtr + 1) >= SEQUENCER_LOWRANGE && *(parPtr + 1) <= SEQUENCER_HIGHRANGE) &&
      (*(parPtr + 2) >= SEQUENCER_LOWRANGE && *(parPtr + 2) <= SEQUENCER_HIGHRANGE) &&
@@ -386,8 +438,6 @@ bool SetSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
   {
     /* Set parameters */
     for(uint8_t i = 0; i < 4; i++)  settings->sequence[i] = (uint8_t)*(parPtr + i);
-    /* Configure core with new settings. */
-    core_configure(settings);
     /* Print msg to inform user */
     comInterface->len = sprintf((char*)comInterface->buf,
                                 "Sequence set to: %u, %u, %u, %u\n\r",
@@ -409,23 +459,29 @@ bool SetSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 ** \return    True if successful, false otherwise.
 **
 ****************************************************************************************/
-bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+bool setDACvalue (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
   /* Set result to false. */
   bool result = FALSE;
   
   /* Is parameter is range? */
-  if((*(parPtr + 0) >= DAC_VALUE_PAR0_LOWRANGE &&  *(parPtr + 0) <= DAC_VALUE_PAR0_HIGHRANGE) &&
-     (*(parPtr + 1) >= DAC_VALUE_PAR1_LOWRANGE &&  *(parPtr + 1) <= DAC_VALUE_PAR1_HIGHRANGE))
+  if( (*(parPtr + 0) >= DAC_VALUE_PAR0_LOWRANGE && *(parPtr + 0) <= DAC_VALUE_PAR0_HIGHRANGE) &&
+      (*(parPtr + 1) >= DAC_VALUE_PAR1_LOWRANGE && *(parPtr + 1) <= DAC_VALUE_PAR1_HIGHRANGE) )
   {
+    /* Add 10000 to remove negative values */
+    uint32_t tmp = (uint32_t)((int16_t)*(parPtr + 1) + 10000);
+    /* Convert mV to 0...4095 */
+    tmp *= 25;
+    tmp += 36;
+    tmp *= 4095;
+    tmp /= 500000;
     /* Set parameter */
-    settings->DACval[(uint8_t)*parPtr] = (int16_t)*(parPtr + 1);
-    settings->DACflag=1;
-    /* Configure DAC with new values. */
-    //DacSetVal(&settings);
+    settings->DACval[((uint8_t)*parPtr) - 1] = (uint16_t)tmp;
+    coreSetDacVal();
     /* Print msg to inform user */
-    comInterface->len = sprintf((char*)comInterface->buf, "DAC channel %u set to %d mV\n\r",
-                                (uint8_t)*(parPtr + 0), settings->DACval[(uint8_t)*parPtr]);
+    comInterface->len = sprintf((char*)comInterface->buf,
+                                "DAC channel %u set to %d mV\n\r",
+                                (uint8_t)*(parPtr + 0), (int16_t)*(parPtr + 1));
     /* Set result */
     result = TRUE;
   }
@@ -433,5 +489,110 @@ bool SetDACvalue (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface
   /* Return result */
   return result;
 } /*** end of SetDACvalue ***/
+
+
+/************************************************************************************//**
+** \brief     Set ADC gain
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
+bool setADCgain (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+{
+  /* Set result to false. */
+  bool result = FALSE;
+
+  /* Is parameter is range? */
+  if( ( (*(parPtr + 0) > 0) && (*(parPtr + 0) <= 4) ) &&
+      ( (*(parPtr + 1) == ADC_GAIN_0_5) || (*(parPtr + 1) == ADC_GAIN_1) ||
+        (*(parPtr + 1) == ADC_GAIN_2) ) )
+  {
+    /* Set parameter */
+    settings->ADCgain[*(parPtr + 0) - 1] = (uint8_t)*(parPtr + 1);
+    /* Print msg to inform user */
+    comInterface->len = sprintf((char*)comInterface->buf,
+                                "ADC channel %u gain set to %d\n\r",
+                                (uint8_t)*(parPtr + 0), (int8_t)*(parPtr + 1));
+    /* Call core handler */
+    adcSetGain();
+    /* Set result */
+    result = TRUE;
+  }
+
+  /* Return result */
+  return result;
+} /*** end of SetDACvalue ***/
+
+
+/************************************************************************************//**
+** \brief     Set ADC resolution
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
+bool setADClowRes (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+{
+  /* Set result to false. */
+  bool result = FALSE;
+
+  /* Is parameter is range? */
+  if( (*(parPtr + 0) == ADC_RES_12_BITS) || (*(parPtr + 0) == ADC_RES_10_BITS) )
+  {
+    /* Set parameter */
+    settings->ADClowRes = (uint8_t)*(parPtr + 0);
+    /* Print msg to inform user */
+    if(settings->ADClowRes)
+    {
+      comInterface->len = sprintf((char*)comInterface->buf,
+                                  "ADC resolution set to 10 bits.\n\r");
+    }
+    else
+    {
+      comInterface->len = sprintf((char*)comInterface->buf,
+                                  "ADC resolution set to 12 bits.\n\r");
+    }
+    /* Call core handler */
+    adcSetRes();
+    /* Set result */
+    result = TRUE;
+  }
+
+  /* Return result */
+  return result;
+} /*** end of setADClowRes ***/
+
+
+/************************************************************************************//**
+** \brief     Set block size
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
+bool setBlockSize (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+{
+  /* Set result to false. */
+  bool result = FALSE;
+
+  /* Is parameter is range? */
+  if(*(parPtr + 0) >= BLOCK_SIZE_MIN &&  *(parPtr + 0) <= BLOCK_SIZE_MAX)
+  {
+    /* Set parameter */
+    *(settings->blockSize) = (uint32_t)*(parPtr + 0);
+    /* Print msg to inform user */
+    comInterface->len = sprintf((char*)comInterface->buf, "Block size set to %u\n\r",
+                                (uint16_t)*(parPtr + 0));
+    /* Call core handler */
+    //pdcChangeAdcBlockSize();
+    /* Set result */
+    result = TRUE;
+  }
+
+  /* Return result */
+  return result;
+} /*** end of setBlockSize ***/
+
 
 /*********************************** end of parser.c ***********************************/

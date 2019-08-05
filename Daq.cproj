@@ -248,7 +248,7 @@
           <SwdClock>4000000</SwdClock>
         </InterfaceProperties>
         <InterfaceName>JTAG</InterfaceName>
-        <JlinkConfigFile>D:\GoogleDrive\my_documents\projects\FE\USB DAQ\firmware\DAQ_new\Daq\jlink.config</JlinkConfigFile>
+        <JlinkConfigFile>F:\Users\Luka\Documents\Šola\Osnove mikroprocesorske elektronike\DAQ\jlink.config</JlinkConfigFile>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.samice</ToolType>
       <ToolNumber>28009857</ToolNumber>
@@ -463,7 +463,7 @@
       <Value>../src/ASF/sam/drivers/wdt</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.optimization.level>Optimize most (-O3)</armgcc.compiler.optimization.level>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
   <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
@@ -481,6 +481,7 @@
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
+  <armgcc.linker.memorysettings.ExternalRAM />
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam/utils/linker_scripts/sam3s/sam3s4/gcc/flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
@@ -582,7 +583,6 @@
     <Folder Include="src\ASF\sam\drivers\dacc\" />
     <Folder Include="src\ASF\sam\drivers\matrix\" />
     <Folder Include="src\ASF\sam\drivers\pdc\" />
-    <Folder Include="src\ASF\sam\drivers\pdc\pdc_uart_example\" />
     <Folder Include="src\ASF\sam\drivers\pio\" />
     <Folder Include="src\ASF\sam\drivers\pmc\" />
     <Folder Include="src\ASF\sam\drivers\supc\" />
@@ -667,9 +667,6 @@
     <None Include="src\ASF\sam\drivers\adc\adc.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\ASF\sam\drivers\adc\adc_sam3u.c">
-      <SubType>compile</SubType>
-    </Compile>
     <None Include="src\ASF\common\services\usb\udc\udi.h">
       <SubType>compile</SubType>
     </None>
@@ -791,9 +788,6 @@
       <SubType>compile</SubType>
     </Compile>
     <None Include="src\ASF\sam\drivers\pio\pio.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam\drivers\pdc\pdc_uart_example\pdc_uart_example.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam\drivers\pdc\pdc.h">

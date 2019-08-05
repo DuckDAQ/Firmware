@@ -22,8 +22,6 @@ src\core.c
 
 src\parser.c
 
-src\ASF\sam\drivers\adc\adc_sam3u.c
-
 src\ASF\common\services\usb\class\cdc\device\udi_cdc_desc.c
 
 src\ASF\common\services\clock\sam3s\sysclk.c
