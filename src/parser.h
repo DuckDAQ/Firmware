@@ -20,17 +20,25 @@
 #define TRUE  1
 #define FALSE 0
 /* supported commands */
-#define CMD_START_ACQ              'S'
-#define CMD_STOP_ACQ               'T'
-#define CMD_SET_AVERAGE_COUNT      'A'
-#define CMD_SET_SAMPLE_PERIOD      'R'
-#define CMD_SET_MEASURMENT_COUNT   'F'
-#define CMD_SET_SEQUENCER          'E'
-#define CMD_SET_DAC_VALUE          'D'
-#define CMD_SET_MODE               'M'
-#define CMD_SET_ADC_GAIN           'G'
-#define CMD_SET_ADC_LOW_RESOLUTION 'L'
-#define CMD_SET_BLOCK_SIZE         'B'
+#define CMD_START_ACQ				'S'
+#define CMD_STOP_ACQ				'T'
+#define CMD_SET_AVERAGE_COUNT		'A'
+#define CMD_SET_SAMPLE_PERIOD		'R'
+#define CMD_SET_MEASURMENT_COUNT	'F'
+#define CMD_SET_SEQUENCER			'E'
+#define CMD_SET_MODE				'M'
+#define CMD_SET_ADC_GAIN			'G'
+#define CMD_SET_ADC_LOW_RESOLUTION	'L'
+#define CMD_SET_BLOCK_SIZE			'B'
+//DAC commands
+#define CMD_SET_DAC_VALUE			'D'
+#define CMD_SET_REPEAT_NUM			'C'
+#define CMD_SET_DAC_FREQ		'H'
+#define CMD_SET_DAC_SEQUENCER		'I'
+#define CMD_SET_DAC_LUT				'J'
+#define CMD_DAC_LUT_LENGTH 'N'
+#define CMD_DAC_START						'O'
+#define CMD_DAC_STOP							'K'
 /* Parameter limits */
 #define MAX_PARAMETER_COUNT   4
 #define MAX_PARAMETER_LENGHT  7
@@ -46,14 +54,24 @@
 #define MEASURMENT_COUNT_HIGHRANGE  1000
 #define SEQUENCER_LOWRANGE          0
 #define SEQUENCER_HIGHRANGE         4
-#define DAC_VALUE_PAR0_LOWRANGE     1
-#define DAC_VALUE_PAR0_HIGHRANGE    2
 #define DAC_VALUE_PAR1_LOWRANGE    -10000
 #define DAC_VALUE_PAR1_HIGHRANGE    10000
 #define ADC_RES_12_BITS             0
 #define ADC_RES_10_BITS             1
 #define BLOCK_SIZE_MIN              1
 #define BLOCK_SIZE_MAX              1024
+
+#define DAC_CH_LOWRANGE				1
+#define DAC_CH_HIGHRANGE			2
+#define DAC_VALUE_MIN				0
+#define DAC_VALUE_MAX				4095
+#define DAC_LUT_LOCATION_LOWRANGE	0
+#define DAC_LUT_LOCATION_HIGHRANGE	1023
+#define DAC_REPEAT_NUM_MIN			0
+#define DAC_REPEAT_NUM_MAX			65500
+#define DAC_PRESCALE_MIN			1
+#define DAC_PRESCALE_MAX			65500
+
 /* communication mode defines */
 #define ASCII_MODE  0
 #define BIN_MODE    1

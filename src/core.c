@@ -31,7 +31,6 @@ uint16_t adcPdcBuff[ADC_BUFFER_SIZE][4];
 /* DAC PDC variables. */
 Pdc * daccPdc;
 pdc_packet_t daccPdcPacket;
-uint16_t daccPdcBuff[DACC_BUFFER_SIZE][2];
 /* Indicates PDC transfer was complete. */
 bool pdcAdcTransfetComplete = 0;
 /* Sync bytes for BIN mode. */
@@ -71,58 +70,35 @@ bool coreConfigure (daq_settings_t * master_settings)
 **
 ****************************************************************************************/
 bool coreStart(void)
-{
-  /* Initialize result. */
-  bool result = false;
-  
+{  
   /* Check if core configure was called. */
   if(settings != NULL)
   {
-    result = true;
-    
-    if(result)
-    {
-      /* Initialize timer 0. */
-      if(!timerInit())
-      {
-        /* Update result */
-        result = true;
-      }
-    }
+			/* Initialize timer 0. */
+			if(!timerInit())
+			{
+				return false;
+			}
   
-    if(result)
-    {
-      /* Initialize PDC */
-      if(!pdcInit())
-      {
-        /* Update result */
-        result = true;
-      }
-    }
+			/* Initialize PDC */
+			if(!pdcInit())
+			{
+					return false;
+			}
   
-    if(result)
-    {
-      /* Initialize ADC */
-      if(!adcInit())
-      {
-        /* Update result */
-        result = true;
-      }
-    }
-  
-    if(result)
-    {
-      /* Initialize DAC */
-      if(!dacInit())
-      {
-        /* Update result */
-        result = true;
-      }
-    }
+			/* Initialize ADC */
+			if(!adcInit())
+			{
+				return false;
+			}
+			/* Initialize DAC */
+			if(!dacInit())
+			{
+				return false;
+			}
   }  
-  
   /* Return result. */
-  return result;
+  return true;
 } /*** end of coreInit ***/
 
 
@@ -136,31 +112,18 @@ bool coreStart(void)
 ****************************************************************************************/
 bool adcInit(void)
 {
-  /* Initialize result. */
-  bool result = true;
-  
-  if(result)
-  {
     /* Enable the specified peripheral clock. */
     if(pmc_enable_periph_clk(ID_ADC))
     {
-      /* Update result */
-      result = true;
+      return false;
     }
-  }
   
-  if(result)
-  {
     /* Initialize the given ADC with the specified ADC clock and startup time. */
     if(adc_init(ADC, sysclk_get_cpu_hz(), ADC_CLK, 0))
     {
-      /* Update result */
-      result = true;
+      return false;
     }
-  }
   
-  if(result)
-  {
     /* Configure ADC timing */
     adc_configure_timing(ADC, 15, ADC_SETTLING_TIME_0, 0);
     /* Configure the conversion resolution. */
@@ -186,10 +149,9 @@ bool adcInit(void)
     /* Enable channels. */
     adcSetChannels();
     adcHandler(true);
-  }
   
   /* Return result. */
-  return result;
+  return true;
 }
 
 /************************************************************************************//**
@@ -310,7 +272,7 @@ void ADC_Handler(void)
 *                               D A C   U T I L I T I E S
 ****************************************************************************************/
 /************************************************************************************//**
-** \brief     Inisilaize DAC
+** \brief     Initialize DAC
 **
 ****************************************************************************************/
 bool dacInit(void)
@@ -323,7 +285,7 @@ bool dacInit(void)
   
   //write one 16-bit value at a time, not two 16-bit values in one 32-bit word
   /* Half word transfer mode */
-  dacc_set_transfer_mode(DACC, 0); 
+  dacc_set_transfer_mode(DACC, 0);
   
   /* Power save:
    * sleep mode  - 0 (disabled)
@@ -388,8 +350,6 @@ void coreSetDacVal(void)
 ****************************************************************************************/
 bool pdcInit(void)
 {
-  bool result = true;
-  
   /* Get PDC registers base address. */
   adcPdc = adc_get_pdc_base(ADC);
   /* Only continue if pointer is valid */
@@ -402,27 +362,26 @@ bool pdcInit(void)
   }
   else
   {
-    /* Update result */
-    result = false;
+    return false;
   }
   
   /* Get PDC registers base address. */
-  daccPdc = dacc_get_pdc_base(DACC);
-  if(daccPdc != NULL)
-  {
-    /* Initialize PDC packet. */
-    daccPdcPacket.ul_addr = (uint32_t)&daccPdcBuff;
-    daccPdcPacket.ul_size = DACC_BUFFER_SIZE;
-    pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
-  }
-  else
-  {
-    /* Update result */
-    result = false;
-  }
+//TODO: move this and init PDC after LUT table has been declared
+  //daccPdc = dacc_get_pdc_base(DACC);
+  //if(daccPdc != NULL)
+  //{
+    ///* Initialize PDC packet. */
+    //daccPdcPacket.ul_addr = (uint32_t)&daccPdcBuff;
+    //daccPdcPacket.ul_size = DACC_BUFFER_SIZE;
+    //pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
+  //}
+  //else
+  //{
+    //return false;
+  //}
   
   /* Return result. */
-  return result;
+  return true;
 }
 
 
@@ -436,34 +395,23 @@ bool pdcInit(void)
 ****************************************************************************************/
 bool timerInit(void)
 {
-  /* Initialize result. */
-  bool result = true;
-  
-  if(result)
-  {
     /* Enable the specified peripheral clock. */
-    if(pmc_enable_periph_clk(ID_TC0))
-    {
-      /* Update result */
-      result = true;
-    }
-  }
+	if(pmc_enable_periph_clk(ID_TC0))
+	{
+		return false;
+	}
   
-  if(result)
-  {
-    /* Configure TC for timer, waveform generation. */
-    tc_init(TC0, 0, TC_CMR_CPCTRG | TC_CMR_WAVE | TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
-    
-    /* Sets timer counter period. */
-    if(!timerSetTimePeriod())
-    {
-      /* Update result */
-      result = true;
-    }
-  }
+	/* Configure TC for timer, waveform generation. */
+	tc_init(TC0, 0, TC_CMR_CPCTRG | TC_CMR_WAVE | TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
+	/* Sets timer counter period. */
+	if(!timerSetTimePeriod())
+	{
+		return false;
+	}
+  
   
   /* Return result. */
-  return result;
+  return true;
 }
 
 
@@ -487,47 +435,41 @@ bool timerSetTimePeriod(void)
   if(settings->acqusitionTime > 1000000)
   {
     /* Update result */
-    result = false;
+    return false;
   }
   
-  if(result)
-  {
-    timerFreq = 1000000 / settings->acqusitionTime;
-    /* Get setting for timer counter. */
-    if(!tc_find_mck_divisor(timerFreq, ul_sysclk, &ul_div, &ul_tc_clks, ul_sysclk))
-    {
-      /* Update result */
-      result = false;
-    }
-  }
+		timerFreq = 1000000 / settings->acqusitionTime;
+		/* Get setting for timer counter. */
+		if(!tc_find_mck_divisor(timerFreq, ul_sysclk, &ul_div, &ul_tc_clks, ul_sysclk))
+		{
+				/* Update result */
+				return false;
+		}
   
-  if(result)
-  { 
-    /* Disable timer counter clock. */
-    //TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKDIS;
-    /* Configure timer counter with a clock configuration */
-    TC0->TC_CHANNEL[0].TC_CMR = (TC0->TC_CHANNEL[0].TC_CMR & 0xFFFFFFF8) | ul_tc_clks;
-    /* Set timer counter compare value. */
-    TC0->TC_CHANNEL[0].TC_RA = ((ul_sysclk / ul_div) / timerFreq) / 2;
-	  TC0->TC_CHANNEL[0].TC_RC = ((ul_sysclk / ul_div) / timerFreq) / 1;
-    /* Reset timer counter value. */
-    TC0->TC_CHANNEL[0].TC_CV = 0;
-    /* Enable timer counter clock. */
-    //TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
-  }
+		/* Disable timer counter clock. */
+		//TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKDIS;
+		/* Configure timer counter with a clock configuration */
+		TC0->TC_CHANNEL[0].TC_CMR = (TC0->TC_CHANNEL[0].TC_CMR & 0xFFFFFFF8) | ul_tc_clks;
+		/* Set timer counter compare value. */
+		TC0->TC_CHANNEL[0].TC_RA = ((ul_sysclk / ul_div) / timerFreq) / 2;
+		TC0->TC_CHANNEL[0].TC_RC = ((ul_sysclk / ul_div) / timerFreq) / 1;
+		/* Reset timer counter value. */
+		TC0->TC_CHANNEL[0].TC_CV = 0;
+		/* Enable timer counter clock. */
+		//TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
   
-  /* Return result. */
-  return result;
+		/* Return result. */
+		return true;
 } /*** end of timer_set_compare_time ***/
 
-
+//Called when user sends StartACQ
 void timerStart(void)
 {
   adcHandler(true);
   tc_start(TC0, 0);
 }
 
-
+//Called when user sends StopACQ
 void timerStop(void)
 {
   tc_stop(TC0, 0);

@@ -33,7 +33,7 @@
 #define DACC_ANALOG_CONTROL ( DACC_ACR_IBCTLCH0(0x02) | \
                               DACC_ACR_IBCTLCH1(0x02) | \
                               DACC_ACR_IBCTLDACCORE(0x01) )
-#define DACC_BUFFER_SIZE 256
+#define DACC_BUFFER_SIZE 1024
 #define DACC_IRQ_PRIORITY 4
 
 /* TIMER configuration */
@@ -67,7 +67,6 @@ typedef struct
   uint32_t acqusitionTime;          /* time period of acquisitions                    */
   uint16_t acquisitionNbr;          /* number of consecutive acquisitions             */
   uint16_t averaging;               /* number of averages                             */
-  uint16_t DACval[2];               /* channel# of used timer                         */
   uint8_t ADCgain[4];
   uint8_t ADClowRes;
   uint8_t DACgain;                  /* Gain of ADC                                    */
@@ -75,7 +74,20 @@ typedef struct
   uint8_t mode;                     /* Output mode. ASCII_MODE=0, BIN_MODE=1          */
   uint32_t * blockSize;
   COM_t *com;
+  
+  uint16_t DACval[2];               /* channel# of used timer                         */
+  uint8_t DacSequence [2]; //DAC channel write sequence. 0 = no channel
+		uint32_t DacFreq;
+		struct DAC_struct
+		{
+			uint16_t Lut[DACC_BUFFER_SIZE]; //Buffer for LUT values. Will be used by PDC
+			uint16_t LutLength; //How many values does LUT have
+			uint16_t NumOfRepeats; //Number of LUT repeats. 0 = continuous mode. 65k max
+			uint16_t CurrentRepeats; //Current number of LUT repeats
+		}DAC[2];
 }daq_settings_t;
+
+//DAC settings
 
 
 /***************************************************************************************
