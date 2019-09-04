@@ -45,12 +45,14 @@ int main (void)
   master_settings.ADClowRes = false;
   master_settings.com = USB;
   
-  //for(uint8_t i = 0; i < 256; i++){
-	  //master_settings.DAC[0].Lut[i] = -1;
-	  //master_settings.DAC[1].Lut[i] = -1;
-  //}
-  //master_settings.DAC[0].Prescale = 1;
-  //master_settings.DAC[1].Prescale = 1;
+  for(uint8_t i = 0; i < 1024; i++){ //sawtooth wave
+	  master_settings.DAC[0].Lut[i] = i*4;
+	  master_settings.DAC[1].Lut[i] = 4095 - i*4;
+  }
+		master_settings.DAC[0].LutLength = 1024;
+		master_settings.DAC[1].LutLength = 1024;
+		master_settings.DAC[0].NumOfRepeats = 0;
+		master_settings.DAC[1].NumOfRepeats = 0;
   master_settings.DacSequence[0] = 1;
   master_settings.DacSequence[1] = 2;
   

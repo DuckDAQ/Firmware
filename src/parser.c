@@ -617,7 +617,7 @@ bool SetLutValues (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 				//1. Parameter: DAC channel
 				//2. Parameter: LUT position
 				//3. Parameter: LUT value
-				uint8_t channel = (uint8_t)*(parPtr + 0);
+				uint8_t channel = (uint8_t)*(parPtr + 0)-1;
 				uint16_t location = (uint16_t)*(parPtr + 1);
 				uint16_t value = (uint16_t)*(parPtr + 2);
 				if(channel < DAC_CH_LOWRANGE || channel > DAC_CH_HIGHRANGE
@@ -647,13 +647,13 @@ bool DacSetNumberOfRepeats (int32_t *parPtr, daq_settings_t *settings, COM_t *co
 			comInterface->len = sprintf((char*)comInterface->buf,
 			"LUT repeats on DAC channel %u was set to %u\n\r",
 			(uint16_t)*parPtr,
-			settings->DAC[(uint16_t)*parPtr].NumOfRepeats);
+			settings->DAC[(uint16_t)(*parPtr)-1].NumOfRepeats);
 			return true;
 }
 
 bool DacStop (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
-	
+
 }
 
 bool DacStart (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
@@ -663,19 +663,37 @@ bool DacStart (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 
 bool DacSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
-
+		//1. Parameter: 1. DAC channel
+  //2. Parameter: 2. DAC channel
+  if(*(parPtr + 0) < 0 || *(parPtr + 0) > DAC_CH_HIGHRANGE
+  || *(parPtr + 1) < 0 || *(parPtr + 1) > DAC_CH_HIGHRANGE //Has to be above 0 and lower 1025
+  ) return false; //Parameter out of range
+  
+  /* Set parameters */
+  settings->DacSequence[0] = *(parPtr + 0)
+		settings->DacSequence[1] = *(parPtr + 1)
+  /* Print msg to inform user */
+  comInterface->len = sprintf((char*)comInterface->buf,
+  "Sequence set to: %u %u\n\r",
+  settings->DacSequence[0],
+		settings->DacSequence[1]);
+  return true;
 }
 //Timer frequency for DAC
 bool DacSetFreq (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
+		//1. Parameter: DAC frequency
+		if(*(parPtr + 0) < 0 || *(parPtr + 0) > DAC_CH_HIGHRANGE) return false; //Parameter out of range
+
+		/* Set parameters */
+		settings->DacSequence[0] = *(parPtr + 0)
+		settings->DacSequence[1] = *(parPtr + 1)
+		/* Print msg to inform user */
 		comInterface->len = sprintf((char*)comInterface->buf,
-																															"%u %u %u %u %u\n\r",
-																															settings->DAC[1].Lut[0],
-settings->DAC[1].Lut[1]
-,settings->DAC[1].Lut[2]
-,settings->DAC[1].Lut[3]
-,settings->DAC[1].Lut[4]
-);
+		"Sequence set to: %u %u\n\r",
+		settings->DacSequence[0],
+		settings->DacSequence[1]);
+		return true;
 }
 
 bool DacSetLutLength (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
@@ -687,7 +705,7 @@ bool DacSetLutLength (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
 					 ) return false; //Parameter out of range
   
 	  /* Set parameters */
-	  settings->DAC[(uint16_t)*parPtr].LutLength = (uint16_t)*(parPtr + 1);
+	  settings->DAC[(uint16_t)(*parPtr)-1].LutLength = (uint16_t)*(parPtr + 1);
 	  /* Print msg to inform user */
 	  comInterface->len = sprintf((char*)comInterface->buf,
 																															"$LUT length of DAC channel %u was set to %u\n\r",

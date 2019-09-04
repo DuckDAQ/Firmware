@@ -54,8 +54,8 @@
 /* TC divisor used to find the lowest acceptable timer frequency */
 #define TC_DIV_FACTOR 65536
 
-#define FIRST_SYNC_BYTE 0x9F
-#define SECOND_SYNC_BYTE 0xA3
+#define FIRST_SYNC_BYTE 0x9F //159
+#define SECOND_SYNC_BYTE 0xA3 //163
 
 
 /****************************************************************************************
