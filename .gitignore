@@ -23,7 +23,7 @@
 
 # Libraries
 *.lib
-*.a
+#*.a
 *.la
 *.lo
 
@@ -55,5 +55,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+Debug/*
+Release/*
 
 # End of https://www.gitignore.io/api/c
