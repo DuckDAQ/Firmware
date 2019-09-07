@@ -670,8 +670,8 @@ bool DacSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
   ) return false; //Parameter out of range
   
   /* Set parameters */
-  settings->DacSequence[0] = *(parPtr + 0)
-		settings->DacSequence[1] = *(parPtr + 1)
+  settings->DacSequence[0] = *(parPtr + 0);
+	settings->DacSequence[1] = *(parPtr + 1);
   /* Print msg to inform user */
   comInterface->len = sprintf((char*)comInterface->buf,
   "Sequence set to: %u %u\n\r",
@@ -686,8 +686,8 @@ bool DacSetFreq (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 		if(*(parPtr + 0) < 0 || *(parPtr + 0) > DAC_CH_HIGHRANGE) return false; //Parameter out of range
 
 		/* Set parameters */
-		settings->DacSequence[0] = *(parPtr + 0)
-		settings->DacSequence[1] = *(parPtr + 1)
+		settings->DacSequence[0] = *(parPtr + 0);
+		settings->DacSequence[1] = *(parPtr + 1);
 		/* Print msg to inform user */
 		comInterface->len = sprintf((char*)comInterface->buf,
 		"Sequence set to: %u %u\n\r",
