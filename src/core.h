@@ -54,8 +54,8 @@
 /* TC divisor used to find the lowest acceptable timer frequency */
 #define TC_DIV_FACTOR 65536
 
-#define FIRST_SYNC_BYTE 0x9F //159
-#define SECOND_SYNC_BYTE 0xA3 //163
+//#define FIRST_SYNC_BYTE 0x9F //159
+//#define SECOND_SYNC_BYTE 0xA3 //163
 
 
 /****************************************************************************************
@@ -68,6 +68,7 @@ typedef struct
   uint16_t acquisitionNbr;          /* number of consecutive acquisitions             */
   uint16_t averaging;               /* number of averages                             */
   uint8_t ADCgain[4];
+		uint8_t syncBytes[2];
   uint8_t ADClowRes;
   uint8_t DACgain;                  /* Gain of ADC                                    */
   uint8_t sequence[4];              /* ADC channel read sequence. 0=no channel        */

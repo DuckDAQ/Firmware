@@ -598,6 +598,9 @@ bool setBlockSize (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
   {
     /* Set parameter */
     *(settings->blockSize) = (uint32_t)*(parPtr + 0);
+				//create new sync bytes for this blockSize
+				settings->syncBytes[0] = ((uint16_t)*(parPtr) & 0b1111111) | 0b10000000;
+				settings->syncBytes[1] = (((uint16_t)*(parPtr)>>7) & 0b1111111) | 0b10000000;
     /* Print msg to inform user */
     comInterface->len = sprintf((char*)comInterface->buf, "Block size set to %u\n\r",
                                 (uint16_t)*(parPtr + 0));

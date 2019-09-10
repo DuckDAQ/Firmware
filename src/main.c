@@ -38,6 +38,8 @@ int main (void)
   master_settings.DACval[0] = 2047;
   master_settings.DACval[1] = 2047;
   master_settings.blockSize = 16;
+		master_settings.syncBytes[1] = 0b10000000; //Sync bytes for 16 bytes blockSize
+		master_settings.syncBytes[0] = 0b10010000;
   master_settings.ADCgain[0] = 1;
   master_settings.ADCgain[1] = 1;
   master_settings.ADCgain[2] = 1;

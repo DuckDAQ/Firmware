@@ -34,7 +34,6 @@ pdc_packet_t daccPdcPacket;
 /* Indicates PDC transfer was complete. */
 bool pdcAdcTransfetComplete = 0;
 /* Sync bytes for BIN mode. */
-uint8_t syncBytes[] = {FIRST_SYNC_BYTE, SECOND_SYNC_BYTE};
 
 
 /****************************************************************************************
@@ -262,7 +261,7 @@ void ADC_Handler(void)
   if((status & ADC_ISR_ENDRX) == ADC_ISR_ENDRX)
   {
     pdcAdcTransfetComplete = true;
-    settings->com->printBuf(syncBytes, 2);
+    settings->com->printBuf(settings->syncBytes, 2);
   }
     
 }
