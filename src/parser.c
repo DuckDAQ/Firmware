@@ -617,7 +617,7 @@ bool SetLutValues (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 				//1. Parameter: DAC channel
 				//2. Parameter: LUT position
 				//3. Parameter: LUT value
-				uint8_t channel = (uint8_t)*(parPtr + 0)-1;
+				uint8_t channel = (uint8_t)*(parPtr + 0);
 				uint16_t location = (uint16_t)*(parPtr + 1);
 				uint16_t value = (uint16_t)*(parPtr + 2);
 				if(channel < DAC_CH_LOWRANGE || channel > DAC_CH_HIGHRANGE
@@ -626,7 +626,7 @@ bool SetLutValues (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 				) return false; //Parameter out of range
 				
 				/* Set parameters */
-				settings->DAC[channel].Lut[location] = value;
+				settings->DAC[channel-1].Lut[location] = value;
 				/* Print msg to inform user */
 				comInterface->len = sprintf((char*)comInterface->buf,
 				"$"); //$ is command for WinForms to send new Lut value
@@ -709,8 +709,8 @@ bool DacSetLutLength (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
 	  /* Print msg to inform user */
 	  comInterface->len = sprintf((char*)comInterface->buf,
 																															"$LUT length of DAC channel %u was set to %u\n\r",
-																															(uint16_t)*parPtr,
-																															settings->DAC[(uint16_t)*parPtr].LutLength);
+																															(uint16_t)(*parPtr),
+																															settings->DAC[(uint16_t)(*parPtr)-1].LutLength);
 			return true;
 }
 
