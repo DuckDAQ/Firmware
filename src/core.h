@@ -102,11 +102,14 @@ void * coreTxEmptyCallBack(void);
 bool timerSetTimePeriod(void);
 void timerStart(void);
 void timerStop(void);
+void dacTimerStart(void);
+void dacTimerStop(void);
 /* ADC core handlers. */
 void adcHandler(bool state);
 void adcSetRes(void);
 void adcSetGain(void);
 void adcSetChannels(void);
+bool DacSetTimer(void);
 /* DAC core handlers. */
 void coreSetDacVal(void);
 

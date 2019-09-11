@@ -47,6 +47,7 @@ int main (void)
   master_settings.ADClowRes = false;
   master_settings.com = USB;
   
+		master_settings.DacFreq = 500;
   for(uint16_t i = 0; i < 1024; i++){ //sawtooth wave
 	  master_settings.DAC[0].Lut[i] = i*4;
 	  master_settings.DAC[1].Lut[i] = 4095 - i*4;

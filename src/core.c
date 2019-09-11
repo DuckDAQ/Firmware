@@ -229,7 +229,22 @@ void adcHandler(bool state)
     adc_disable_interrupt(ADC, ADC_IER_ENDRX);
   }
 }
-
+void dacHandler(bool state)
+{
+	  if(state)
+  {
+    /* Enable the DACC interrupts */
+    adc_enable_interrupt(DACC, DACC_IMR_ENDTX);
+    /* Set Interrupt Priority */
+    NVIC_SetPriority(DACC_IRQn, DACC_IRQ_PRIORITY);
+    /* Enable External Interrupt */
+    NVIC_EnableIRQ(DACC_IRQn);
+  }
+  else
+  {
+    adc_disable_interrupt(DACC, DACC_IMR_ENDTX);
+  }
+}
 
 /************************************************************************************//**
 ** \brief     Analog to digital converter interrupt service routine
@@ -284,17 +299,22 @@ bool dacInit(void)
   
   //write one 16-bit value at a time, not two 16-bit values in one 32-bit word
   /* Half word transfer mode */
-  dacc_set_transfer_mode(DACC, 0);
+  dacc_set_transfer_mode(DACC, 0); //0=HalfMode
   
   /* Power save:
    * sleep mode  - 0 (disabled)
    * fast wakeup - 0 (disabled) */
-  dacc_set_power_save(DACC, 0, 0);
+  //dacc_set_power_save(DACC, 0, 0);
   
-  //select channel 0 and 1, #define in core.h
-  /* Disable TAG and select output channel DACC_CHANNEL */
-  dacc_set_channel_selection(DACC, DACC_CHANNEL0);
-  dacc_set_channel_selection(DACC, DACC_CHANNEL1);
+		/*
+		 * \param p_dacc Pointer to a DACC instance.
+		 * \param ul_refresh Refresh period setting value.
+		 * \param ul_maxs Max speed mode configuration.
+		 * \param ul_startup Startup time selection.
+		*/
+		dacc_set_timing(DACC, 0x08, 0, 0x10);
+		
+		dacc_set_channel_selection(DACC, DACC_CHANNEL0);
   
   /* Timing:
         * refresh        - 0x08 (1024*8 dacc clocks)
@@ -307,14 +327,24 @@ bool dacInit(void)
     ul_maxs Max speed mode configuration.
     ul_startup  Startup time selection.
     */
-  
-  //dacc_set_timing(DACC, 0x08, 0, 0x10);
+		
+	/*Choose the TIO output from timer/counter channel 1 as the trigger.
+	Note that "channel 1" in this case refers only to channel 1 of timer/counter
+	module 0, not channel 1 of timer/counter module 1. Also, the datasheet
+	specifies only "TIO output" as the trigger source, without clarifying whether
+	this refers to TIOA or TIOB or both. With a little experimentation I determined
+	that only TIOA will trigger the DAC, not TIOB.*/
+  dacc_set_trigger(DACC, 2);
   
   //dacc_enable(DACC);
   dacc_enable_channel(DACC, DACC_CHANNEL0);
-  dacc_enable_channel(DACC, DACC_CHANNEL1); 
+		tc_start(TC0, 1);
+		dacc_enable_interrupt(DACC, DACC_IMR_ENDTX);
+		NVIC_EnableIRQ(DACC_IRQn);
+		//dacTimerStart();
+		pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
   //dacc_analog_control defined in core.h
-  dacc_set_analog_control(DACC, DACC_ANALOG_CONTROL);
+  //dacc_set_analog_control(DACC, DACC_ANALOG_CONTROL);
   
   return true;
 }
@@ -366,18 +396,13 @@ bool pdcInit(void)
   
   /* Get PDC registers base address. */
 //TODO: move this and init PDC after LUT table has been declared
-  //daccPdc = dacc_get_pdc_base(DACC);
-  //if(daccPdc != NULL)
-  //{
-    ///* Initialize PDC packet. */
-    //daccPdcPacket.ul_addr = (uint32_t)&daccPdcBuff;
-    //daccPdcPacket.ul_size = DACC_BUFFER_SIZE;
-    //pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
-  //}
-  //else
-  //{
-    //return false;
-  //}
+  daccPdc = dacc_get_pdc_base(DACC);
+  if(daccPdc == NULL) return FALSE;
+  /* Initialize PDC packet. */
+  daccPdcPacket.ul_addr = (uint32_t)settings->DAC[0].Lut;
+  daccPdcPacket.ul_size = settings->DAC[0].LutLength;
+  //pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
+		pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);
   
   /* Return result. */
   return true;
@@ -399,15 +424,29 @@ bool timerInit(void)
 	{
 		return false;
 	}
+	if(pmc_enable_periph_clk(ID_TC1))
+	{
+		return false;
+	}
   
 	/* Configure TC for timer, waveform generation. */
 	tc_init(TC0, 0, TC_CMR_CPCTRG | TC_CMR_WAVE | TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
+	//For DAC
+	tc_init(TC0, 1,
+															TC_CMR_TCCLKS_TIMER_CLOCK4	//MCK/8
+															|	TC_CMR_WAVE	//waveform mode
+															|	TC_CMR_WAVSEL_UP_RC	//count up, reset on RC match
+															|	TC_CMR_ACPC_TOGGLE	//toggle TIOA on RC match
+															);
+	
+	
 	/* Sets timer counter period. */
 	if(!timerSetTimePeriod())
 	{
 		return false;
 	}
-  
+ //if(!DacSetTimer()) return FALSE;
+	tc_write_rc(TC0, 1, 1600);
   
   /* Return result. */
   return true;
@@ -461,6 +500,34 @@ bool timerSetTimePeriod(void)
 		return true;
 } /*** end of timer_set_compare_time ***/
 
+bool DacSetTimer(void)
+{
+			/* Initialize variables. */
+			uint32_t ul_div = 0;
+			uint32_t ul_tc_clks = 0;
+			uint32_t ul_sysclk = sysclk_get_cpu_hz();
+	
+			/* check if value is within limit. */
+			if(settings->DacFreq > 1000000)
+			{
+					return false;
+			}
+			/* Get setting for timer counter. */
+			if(!tc_find_mck_divisor(settings->DacFreq, ul_sysclk, &ul_div, &ul_tc_clks, ul_sysclk))
+			{
+					return false;
+			}
+			/* Configure timer counter with a clock configuration */
+			TC0->TC_CHANNEL[1].TC_CMR = (TC0->TC_CHANNEL[1].TC_CMR & 0xFFFFFFF8) | ul_tc_clks;
+			/* Set timer counter compare value. */
+			TC0->TC_CHANNEL[1].TC_RA = ((ul_sysclk / ul_div) / settings->DacFreq) / 2;
+			TC0->TC_CHANNEL[1].TC_RC = ((ul_sysclk / ul_div) / settings->DacFreq) / 1;
+			/* Reset timer counter value. */
+			TC0->TC_CHANNEL[1].TC_CV = 0;
+			/* Return result. */
+			return true;
+	} 
+
 //Called when user sends StartACQ
 void timerStart(void)
 {
@@ -469,11 +536,21 @@ void timerStart(void)
 }
 
 //Called when user sends StopACQ
+void dacTimerStop(void)
+{
+  tc_stop(TC0, 1);
+}
+void dacTimerStart(void)
+{
+  dacHandler(true);
+  tc_start(TC0, 1);
+}
+
+//Called when user sends StopACQ
 void timerStop(void)
 {
   tc_stop(TC0, 0);
 }
-
 
 /****************************************************************************************
 *                        C A L L B A C K   F U N C T I O N S
@@ -538,7 +615,15 @@ void comTxEmptyCallback(uint8_t port)
   }
 }
 
-
+void DACC_Handler(void)
+{
+	//confirm that the "end of transmit buffer interrupt" fired
+	if (dacc_get_interrupt_status(DACC) & DACC_ISR_ENDTX)
+	{
+		//re-configure the PDC so that sine-wave generation continues
+		pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);
+	}
+}
 /************************************************************************************//**
 ** \brief    
 ** \return    Pointer to the core tx empty callback function. 
