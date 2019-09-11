@@ -329,17 +329,17 @@ bool dacInit(void)
   dacc_enable_channel(DACC, DACC_CHANNEL0);
   dacc_enable_channel(DACC, DACC_CHANNEL1);
 		
-		tc_start(TC0, 1);
-		dacc_enable_interrupt(DACC, DACC_IMR_ENDTX);
-		NVIC_EnableIRQ(DACC_IRQn);
 		pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
-  //dacc_analog_control defined in core.h
+		
+  //dacc_analog_control defined in core.h. Used for slew rate etc.
   //dacc_set_analog_control(DACC, DACC_ANALOG_CONTROL);
   
   return true;
 }
 
-
+void setDacTransferMode(uint8_t val){
+		dacc_set_transfer_mode(DACC,	val); 
+	};
 /************************************************************************************//**
 ** \brief     Updates DAC output value.
 **
@@ -390,14 +390,17 @@ bool pdcInit(void)
   if(daccPdc == NULL) return FALSE;
   /* Initialize PDC packet. */
   daccPdcPacket.ul_addr = (uint32_t)settings->Lut;
-  daccPdcPacket.ul_size = settings->LutLength;
+  //daccPdcPacket.ul_size = settings->LutLength;
+		SetDacPdcLength();
   //pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
 		pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);
   
   /* Return result. */
   return true;
 }
-
+void SetDacPdcLength(void){
+		daccPdcPacket.ul_size = settings->LutLength;
+}
 
 /****************************************************************************************
 *                             T I M E R   U T I L I T I E S
@@ -436,7 +439,7 @@ bool timerInit(void)
 		return false;
 	}
 	
-	tc_write_rc(TC0, 1, settings->DacPeriod);
+	setDacPeriod();
   
   /* Return result. */
   return true;
@@ -490,15 +493,22 @@ bool timerSetTimePeriod(void)
 		return true;
 } /*** end of timer_set_compare_time ***/
 
-
+void setDacPeriod(void){
+			tc_write_rc(TC0, 1, settings->DacPeriod);	
+}
 //Called when user sends StartACQ
 void timerStart(void)
 {
   adcHandler(true);
   tc_start(TC0, 0);
 }
-
 //Called when user sends StopACQ
+void timerStop(void)
+{
+  tc_stop(TC0, 0);
+}
+
+//Called when user stops DAC
 void dacTimerStop(void)
 {
   tc_stop(TC0, 1);
@@ -508,13 +518,6 @@ void dacTimerStart(void)
   dacHandler(true);
   tc_start(TC0, 1);
 }
-
-//Called when user sends StopACQ
-void timerStop(void)
-{
-  tc_stop(TC0, 0);
-}
-
 /****************************************************************************************
 *                        C A L L B A C K   F U N C T I O N S
 ****************************************************************************************/

@@ -37,6 +37,7 @@
 #define CMD_DAC_LUT_LENGTH 'N'
 #define CMD_DAC_START						'O'
 #define CMD_DAC_STOP							'K'
+#define CMD_DAC_TRANSFER_MODE 'P'
 /* Parameter limits */
 #define MAX_PARAMETER_COUNT   4
 #define MAX_PARAMETER_LENGHT  7

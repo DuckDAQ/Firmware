@@ -33,7 +33,7 @@ bool DacSetFreq (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 bool DacSetLutLength (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool DacStop (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool DacStart (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
-
+bool DacTransfer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 /************************************************************************************//**
 ** \brief     Submits a message to parser.
 ** \param     Command to parse, pointer to command structure, pointer to interface
@@ -159,7 +159,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
 		/* Set pointer to the command handler */
 		parsedCMD->funcPtr = DacStop;
 		/* Get parameters for command or wait for termination of line. */
-		result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+		result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
 		break;
 	case CMD_DAC_START:
 		/* Save command if needed later */
@@ -167,7 +167,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
 		/* Set pointer to the command handler */
 		parsedCMD->funcPtr = DacStart;
 		/* Get parameters for command or wait for termination of line. */
-		result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+		result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
 		break;
 	case CMD_DAC_LUT_LENGTH:
 		/* Save command if needed later */
@@ -177,6 +177,15 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
 		/* Get parameters for command or wait for termination of line. */
 		result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
 		break;
+			case CMD_DAC_TRANSFER_MODE:
+				/* Save command if needed later */
+				parsedCMD->cmd =  CMD_DAC_TRANSFER_MODE;
+				/* Set pointer to the command handler */
+				parsedCMD->funcPtr = DacTransfer;
+				/* Get parameters for command or wait for termination of line. */
+				result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+				break;
+		
 	  	
     /* Command not supported */
     default:
@@ -594,14 +603,18 @@ bool DacSetNumberOfRepeats (int32_t *parPtr, daq_settings_t *settings, COM_t *co
 			return true;
 }
 
-bool DacStop (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
-{
-
-}
-
 bool DacStart (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
+	dacTimerStart();
+	comInterface->len = sprintf((char*)comInterface->buf, "DAC timer started\n\r");
+	return true;
+}
 
+bool DacStop (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+{
+	dacTimerStop();
+	comInterface->len = sprintf((char*)comInterface->buf, "DAC timer stopped\n\r");
+	return true;
 }
 
 
@@ -614,10 +627,12 @@ bool DacSetFreq (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 
 		/* Set parameters */
 		settings->DacPeriod = *parPtr;
+		setDacPeriod();
 		/* Print msg to inform user */
 		comInterface->len = sprintf((char*)comInterface->buf,
 														"Period set to: %u us\n\r",
 														settings->DacPeriod);
+	 
 		return true;
 }
 
@@ -629,11 +644,23 @@ bool DacSetLutLength (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
   
 	  /* Set parameters */
 	  settings->LutLength = (uint16_t)*(parPtr);
+			SetDacPdcLength();
 	  /* Print msg to inform user */
 	  comInterface->len = sprintf((char*)comInterface->buf,
 																															"$LUT length of was set to %u\n\r",
 																															settings->LutLength);
 			return true;
+}
+bool DacTransfer(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface){
+		//1. Parameter: Transfer mode.
+		//0=HalfMode / 1=FullMode (Fullmode: 2 values at the same time to ADC FIFO buffer)
+		//Fullmode for both channels simultaniously
+		if(*parPtr < 0 || *parPtr > 1) return FALSE;
+		setDacTransferMode(*parPtr);
+		 comInterface->len = sprintf((char*)comInterface->buf,
+																															"Dac transfer mode set to %u\n\r",
+																															*parPtr);
+		return true;
 }
 
 /*********************************** end of parser.c ***********************************/
