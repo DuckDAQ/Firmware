@@ -34,6 +34,7 @@ bool DacSetLutLength (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
 bool DacStop (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool DacStart (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool DacTransfer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool GetLutCounter(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 /************************************************************************************//**
 ** \brief     Submits a message to parser.
 ** \param     Command to parse, pointer to command structure, pointer to interface
@@ -185,7 +186,14 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
 				/* Get parameters for command or wait for termination of line. */
 				result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
 				break;
-		
+		case CMD_DAC_LUT_COUNTER:
+			/* Save command if needed later */
+			parsedCMD->cmd =  CMD_DAC_LUT_COUNTER;
+			/* Set pointer to the command handler */
+			parsedCMD->funcPtr = GetLutCounter;
+			/* Get parameters for command or wait for termination of line. */
+			result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+			break;	
 	  	
     /* Command not supported */
     default:
@@ -662,5 +670,11 @@ bool DacTransfer(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 																															*parPtr);
 		return true;
 }
+bool GetLutCounter(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface){
+		 comInterface->len = sprintf((char*)comInterface->buf,
+																															"#%u\n\r",
+																															GetLutCntr());
+		return true;
+	}
 
 /*********************************** end of parser.c ***********************************/

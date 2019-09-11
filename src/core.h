@@ -116,6 +116,7 @@ void coreSetDacVal(void);
 void setDacPeriod(void);
 void SetDacPdcLength(void);
 void setDacTransferMode(uint8_t val);
+uint32_t GetLutCntr(void);
   
 #endif /* CORE_H_ */
 /************************************ end of core.h ***********************************/

@@ -518,6 +518,9 @@ void dacTimerStart(void)
   dacHandler(true);
   tc_start(TC0, 1);
 }
+uint32_t GetLutCntr(void){ //Used to get DAC PDC pointer of the LUT. For changing LUT table on the fly
+	 return pdc_read_tx_counter(daccPdc);
+}
 /****************************************************************************************
 *                        C A L L B A C K   F U N C T I O N S
 ****************************************************************************************/
