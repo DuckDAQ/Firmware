@@ -234,7 +234,7 @@ void dacHandler(bool state)
 	  if(state)
   {
     /* Enable the DACC interrupts */
-    adc_enable_interrupt(DACC, DACC_IMR_ENDTX);
+    dacc_enable_interrupt(DACC, DACC_IMR_ENDTX);
     /* Set Interrupt Priority */
     NVIC_SetPriority(DACC_IRQn, DACC_IRQ_PRIORITY);
     /* Enable External Interrupt */
@@ -242,7 +242,7 @@ void dacHandler(bool state)
   }
   else
   {
-    adc_disable_interrupt(DACC, DACC_IMR_ENDTX);
+    dacc_disable_interrupt(DACC, DACC_IMR_ENDTX);
   }
 }
 
@@ -299,7 +299,7 @@ bool dacInit(void)
   
   //write one 16-bit value at a time, not two 16-bit values in one 32-bit word
   /* Half word transfer mode */
-  dacc_set_transfer_mode(DACC, 0); //0=HalfMode
+  dacc_set_transfer_mode(DACC,	1); //0=HalfMode
   
   /* Power save:
    * sleep mode  - 0 (disabled)
@@ -314,8 +314,8 @@ bool dacInit(void)
 		*/
 		dacc_set_timing(DACC, 0x08, 0, 0x10);
 		
-		dacc_set_channel_selection(DACC, DACC_CHANNEL0);
-  
+		//dacc_set_channel_selection(DACC, DACC_CHANNEL0);
+  dacc_enable_flexible_selection(DACC);
   /* Timing:
         * refresh        - 0x08 (1024*8 dacc clocks)
         * max speed mode -    0 (disabled)
@@ -338,10 +338,14 @@ bool dacInit(void)
   
   //dacc_enable(DACC);
   dacc_enable_channel(DACC, DACC_CHANNEL0);
+		
+				//dacc_set_channel_selection(DACC, DACC_CHANNEL1);
+  //dacc_set_trigger(DACC, 2);
+  dacc_enable_channel(DACC, DACC_CHANNEL1);
+		
 		tc_start(TC0, 1);
 		dacc_enable_interrupt(DACC, DACC_IMR_ENDTX);
 		NVIC_EnableIRQ(DACC_IRQn);
-		//dacTimerStart();
 		pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
   //dacc_analog_control defined in core.h
   //dacc_set_analog_control(DACC, DACC_ANALOG_CONTROL);
@@ -433,7 +437,7 @@ bool timerInit(void)
 	tc_init(TC0, 0, TC_CMR_CPCTRG | TC_CMR_WAVE | TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
 	//For DAC
 	tc_init(TC0, 1,
-															TC_CMR_TCCLKS_TIMER_CLOCK4	//MCK/8
+															TC_CMR_TCCLKS_TIMER_CLOCK3	//MCK/32 -> 1Mhz
 															|	TC_CMR_WAVE	//waveform mode
 															|	TC_CMR_WAVSEL_UP_RC	//count up, reset on RC match
 															|	TC_CMR_ACPC_TOGGLE	//toggle TIOA on RC match
@@ -445,8 +449,8 @@ bool timerInit(void)
 	{
 		return false;
 	}
- //if(!DacSetTimer()) return FALSE;
-	tc_write_rc(TC0, 1, 1600);
+	
+	tc_write_rc(TC0, 1, settings->DacPeriod);
   
   /* Return result. */
   return true;
@@ -500,33 +504,6 @@ bool timerSetTimePeriod(void)
 		return true;
 } /*** end of timer_set_compare_time ***/
 
-bool DacSetTimer(void)
-{
-			/* Initialize variables. */
-			uint32_t ul_div = 0;
-			uint32_t ul_tc_clks = 0;
-			uint32_t ul_sysclk = sysclk_get_cpu_hz();
-	
-			/* check if value is within limit. */
-			if(settings->DacFreq > 1000000)
-			{
-					return false;
-			}
-			/* Get setting for timer counter. */
-			if(!tc_find_mck_divisor(settings->DacFreq, ul_sysclk, &ul_div, &ul_tc_clks, ul_sysclk))
-			{
-					return false;
-			}
-			/* Configure timer counter with a clock configuration */
-			TC0->TC_CHANNEL[1].TC_CMR = (TC0->TC_CHANNEL[1].TC_CMR & 0xFFFFFFF8) | ul_tc_clks;
-			/* Set timer counter compare value. */
-			TC0->TC_CHANNEL[1].TC_RA = ((ul_sysclk / ul_div) / settings->DacFreq) / 2;
-			TC0->TC_CHANNEL[1].TC_RC = ((ul_sysclk / ul_div) / settings->DacFreq) / 1;
-			/* Reset timer counter value. */
-			TC0->TC_CHANNEL[1].TC_CV = 0;
-			/* Return result. */
-			return true;
-	} 
 
 //Called when user sends StartACQ
 void timerStart(void)

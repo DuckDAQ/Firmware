@@ -47,10 +47,10 @@ int main (void)
   master_settings.ADClowRes = false;
   master_settings.com = USB;
   
-		master_settings.DacFreq = 500;
   for(uint16_t i = 0; i < 1024; i++){ //sawtooth wave
 	  master_settings.DAC[0].Lut[i] = i*4;
-	  master_settings.DAC[1].Lut[i] = 4095 - i*4;
+	  //master_settings.DAC[1].Lut[i] = 4095 - i*4;
+			if(i%2 == 0) master_settings.DAC[0].Lut[i] |= (1<<12);
   }
 		master_settings.DAC[0].LutLength = 1024;
 		master_settings.DAC[1].LutLength = 1024;
@@ -58,10 +58,11 @@ int main (void)
 		master_settings.DAC[1].NumOfRepeats = 0;
   master_settings.DacSequence[0] = 1;
   master_settings.DacSequence[1] = 2;
+		master_settings.DacPeriod = 10; //us -> Sawtooth freq = 1/(10us * 1024) = 97.65 Hz
   
   coreConfigure(&master_settings);
   coreStart();
-  
+
   while(1)
   {
     // Do something...

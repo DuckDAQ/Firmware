@@ -625,7 +625,7 @@ bool SetLutValues (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 				uint16_t value = (uint16_t)*(parPtr + 2);
 				if(channel < DAC_CH_LOWRANGE || channel > DAC_CH_HIGHRANGE
 				|| location < DAC_LUT_LOCATION_LOWRANGE || location > DAC_LUT_LOCATION_HIGHRANGE
-				|| value < DAC_VALUE_MIN || value > DAC_VALUE_MAX
+				//|| value < DAC_VALUE_MIN || value > DAC_VALUE_MAX //Max cen now be much more since 12th bit is channel selection
 				) return false; //Parameter out of range
 				
 				/* Set parameters */

@@ -78,7 +78,7 @@ typedef struct
   
   uint16_t DACval[2];               /* channel# of used timer                         */
   uint8_t DacSequence [2]; //DAC channel write sequence. 0 = no channel
-		uint32_t DacFreq;
+		uint16_t DacPeriod;
 		struct DAC_struct
 		{
 			uint16_t Lut[DACC_BUFFER_SIZE]; //Buffer for LUT values. Will be used by PDC
