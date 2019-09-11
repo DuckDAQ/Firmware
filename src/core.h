@@ -77,15 +77,16 @@ typedef struct
   COM_t *com;
   
   uint16_t DACval[2];               /* channel# of used timer                         */
-  uint8_t DacSequence [2]; //DAC channel write sequence. 0 = no channel
-		uint16_t DacPeriod;
-		struct DAC_struct
-		{
-			uint16_t Lut[DACC_BUFFER_SIZE]; //Buffer for LUT values. Will be used by PDC
-			uint16_t LutLength; //How many values does LUT have
-			uint16_t NumOfRepeats; //Number of LUT repeats. 0 = continuous mode. 65k max
-			uint16_t CurrentRepeats; //Current number of LUT repeats
-		}DAC[2];
+		
+		//This will define how fast new value will be inserted do DAC FIFO. 
+		uint16_t DacPeriod;	//Period of TC Channel1 is microseconds (Channel0 is for ADC)
+		
+		//Lut values for both channels 
+		//Even number indexes = one channel, odd num indexes = other channel
+		uint16_t Lut[DACC_BUFFER_SIZE*2]; //Buffer for LUT values. Will be used by PDC
+		uint16_t LutLength; //How many values does LUT have
+		uint16_t NumOfRepeats; //Number of LUT repeats. 0 = continuous mode. 65k max
+		uint16_t CurrentRepeats; //Current number of LUT repeats
 }daq_settings_t;
 
 //DAC settings

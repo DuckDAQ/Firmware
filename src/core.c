@@ -297,14 +297,14 @@ bool dacInit(void)
   /* Reset DACC registers */
   dacc_reset(DACC);
   
-  //write one 16-bit value at a time, not two 16-bit values in one 32-bit word
-  /* Half word transfer mode */
-  dacc_set_transfer_mode(DACC,	1); //0=HalfMode
+		//0=HalfMode 1=FullMode (Fullmode = 2 values at the same time to ADC FIFO buffer)
+		//For both channels
+  dacc_set_transfer_mode(DACC,	1); 
   
   /* Power save:
    * sleep mode  - 0 (disabled)
    * fast wakeup - 0 (disabled) */
-  //dacc_set_power_save(DACC, 0, 0);
+  dacc_set_power_save(DACC, 0, 0);
   
 		/*
 		 * \param p_dacc Pointer to a DACC instance.
@@ -312,22 +312,11 @@ bool dacInit(void)
 		 * \param ul_maxs Max speed mode configuration.
 		 * \param ul_startup Startup time selection.
 		*/
-		dacc_set_timing(DACC, 0x08, 0, 0x10);
+		dacc_set_timing(DACC, 0x08, 0, 0x10); //TODO: Check if these values are OK
 		
-		//dacc_set_channel_selection(DACC, DACC_CHANNEL0);
+		//Flexible: Select both channels, TAG mode (12:15 bits in FIFO are channel selection)
   dacc_enable_flexible_selection(DACC);
-  /* Timing:
-        * refresh        - 0x08 (1024*8 dacc clocks)
-        * max speed mode -    0 (disabled)
-        * startup time   - 0x10 (1024 dacc clocks)
-    
-    
-    p_dacc  Pointer to a DACC instance.
-    ul_refresh  Refresh period setting value.
-    ul_maxs Max speed mode configuration.
-    ul_startup  Startup time selection.
-    */
-		
+   
 	/*Choose the TIO output from timer/counter channel 1 as the trigger.
 	Note that "channel 1" in this case refers only to channel 1 of timer/counter
 	module 0, not channel 1 of timer/counter module 1. Also, the datasheet
@@ -336,11 +325,8 @@ bool dacInit(void)
 	that only TIOA will trigger the DAC, not TIOB.*/
   dacc_set_trigger(DACC, 2);
   
-  //dacc_enable(DACC);
+		//Enable both channels
   dacc_enable_channel(DACC, DACC_CHANNEL0);
-		
-				//dacc_set_channel_selection(DACC, DACC_CHANNEL1);
-  //dacc_set_trigger(DACC, 2);
   dacc_enable_channel(DACC, DACC_CHANNEL1);
 		
 		tc_start(TC0, 1);
@@ -403,8 +389,8 @@ bool pdcInit(void)
   daccPdc = dacc_get_pdc_base(DACC);
   if(daccPdc == NULL) return FALSE;
   /* Initialize PDC packet. */
-  daccPdcPacket.ul_addr = (uint32_t)settings->DAC[0].Lut;
-  daccPdcPacket.ul_size = settings->DAC[0].LutLength;
+  daccPdcPacket.ul_addr = (uint32_t)settings->Lut;
+  daccPdcPacket.ul_size = settings->LutLength;
   //pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
 		pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);
   

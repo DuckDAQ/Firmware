@@ -31,10 +31,8 @@
 #define CMD_SET_ADC_LOW_RESOLUTION	'L'
 #define CMD_SET_BLOCK_SIZE			'B'
 //DAC commands
-#define CMD_SET_DAC_VALUE			'D'
 #define CMD_SET_REPEAT_NUM			'C'
 #define CMD_SET_DAC_FREQ		'H'
-#define CMD_SET_DAC_SEQUENCER		'I'
 #define CMD_SET_DAC_LUT				'J'
 #define CMD_DAC_LUT_LENGTH 'N'
 #define CMD_DAC_START						'O'
@@ -64,13 +62,13 @@
 #define DAC_CH_LOWRANGE				1
 #define DAC_CH_HIGHRANGE			2
 #define DAC_VALUE_MIN				0
-#define DAC_VALUE_MAX				4095
+#define DAC_VALUE_MAX			 8191 //12th bit is channel selection bit. Can be 1.
 #define DAC_LUT_LOCATION_LOWRANGE	0
 #define DAC_LUT_LOCATION_HIGHRANGE 1023
 #define DAC_REPEAT_NUM_MIN			0
 #define DAC_REPEAT_NUM_MAX			65500
-#define DAC_PRESCALE_MIN			1
-#define DAC_PRESCALE_MAX			65500
+#define DAC_PERIOD_MIN			1
+#define DAC_PERIOD_MAX			65500
 
 /* communication mode defines */
 #define ASCII_MODE  0
