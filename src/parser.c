@@ -599,11 +599,12 @@ bool SetLutValues (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 bool DacSetNumberOfRepeats (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
 			//1. Parameter: LUT repeats
-			if(*(parPtr) < DAC_REPEAT_NUM_MIN || *(parPtr) > DAC_REPEAT_NUM_MAX
+			if(*parPtr < DAC_REPEAT_NUM_MIN || *parPtr > DAC_REPEAT_NUM_MAX
 			) return false; //Parameter out of range
 			
 			/* Set parameters */
 			settings->NumOfRepeats = (uint16_t)*(parPtr);
+			settings->CurrentRepeats = 0; //Reset current repeats
 			/* Print msg to inform user */
 			comInterface->len = sprintf((char*)comInterface->buf,
 			"LUT number of repeats was set to %u\n\r",

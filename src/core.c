@@ -340,24 +340,6 @@ bool dacInit(void)
 void setDacTransferMode(uint8_t val){
 		dacc_set_transfer_mode(DACC,	val); 
 	};
-/************************************************************************************//**
-** \brief     Updates DAC output value.
-**
-****************************************************************************************/
-void coreSetDacVal(void)
-{
-  uint16_t status = dacc_get_interrupt_status(DACC);
-  
-  if ((status & DACC_ISR_TXRDY) == DACC_ISR_TXRDY)
-  {
-    //loop for both channels
-    for(uint8_t i = 0; i < 2; i++){
-      dacc_set_channel_selection(DACC, i); //first channel 0, then channel 1      
-      dacc_write_conversion_data(DACC, settings->DACval[i]);
-    }
-  }
-} /*** end of DacSetVal ***/
-
 
 /****************************************************************************************
 *                               P D C   U T I L I T I E S
@@ -589,8 +571,13 @@ void DACC_Handler(void)
 	//confirm that the "end of transmit buffer interrupt" fired
 	if (dacc_get_interrupt_status(DACC) & DACC_ISR_ENDTX)
 	{
-		//re-configure the PDC so that sine-wave generation continues
-		pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);
+		settings->CurrentRepeats++;
+		if(settings->CurrentRepeats <= settings->NumOfRepeats || settings->NumOfRepeats == 0){ //if NumOfRepeats == 0 -> continuous mode
+				pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);	
+		}else{
+				dacTimerStop();
+				dacHandler(false);
+		}
 	}
 }
 /************************************************************************************//**

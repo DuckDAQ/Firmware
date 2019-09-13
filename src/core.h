@@ -112,7 +112,6 @@ void adcSetGain(void);
 void adcSetChannels(void);
 bool DacSetTimer(void);
 /* DAC core handlers. */
-void coreSetDacVal(void);
 void setDacPeriod(void);
 void SetDacPdcLength(void);
 void setDacTransferMode(uint8_t val);
