@@ -58,6 +58,7 @@ dkms.conf
 
 Debug/*
 Release/*
+doxygen/output/*
 
 !Debug/Makefile
 !Release/Makefile

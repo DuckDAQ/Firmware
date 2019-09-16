@@ -6,8 +6,8 @@
 /****************************************************************************************
 * Include files
 ****************************************************************************************/
-#include <asf.h>
-#include "core.h"
+#include <asf.h>                     /* Atmel Software Framework include file          */
+#include "core.h"                    /* Core functionality for acquisition             */
 
 
 /***************************************************************************************
@@ -17,23 +17,26 @@ bool timerInit(void);
 bool dacInit(void);
 bool adcInit(void);
 bool pdcInit(void);
-void comTxEmptyCallback(uint8_t port);
+void comTxEmptyCallback(void);
+
 
 /****************************************************************************************
 * Local data declarations
 ****************************************************************************************/
-/* Structure with all the settings. */
+/** \brief Structure with all the settings. */
 static daq_settings_t * settings;
-/* ADC PDC variables. */
+/** \brief ADC PDC pointer. */
 Pdc * adcPdc;
+/** \brief ADC PDC packet. */
 pdc_packet_t adcPdcPacket;
+/** \brief ADC PDC buffer. */
 uint16_t adcPdcBuff[ADC_BUFFER_SIZE][4];
-/* DAC PDC variables. */
+/** \brief DAC PDC variables. */
 Pdc * daccPdc;
+/** \brief DACC PDC packet. */
 pdc_packet_t daccPdcPacket;
-/* Indicates PDC transfer was complete. */
+/** \brief Indicates PDC transfer was complete. */
 bool pdcAdcTransfetComplete = 0;
-/* Sync bytes for BIN mode. */
 
 
 /****************************************************************************************
@@ -63,9 +66,9 @@ bool coreConfigure (daq_settings_t * master_settings)
   return FALSE;
 } /*** end of core_configure ***/
 
-
 /************************************************************************************//**
 ** \brief
+** \return
 **
 ****************************************************************************************/
 bool coreStart(void)
@@ -73,29 +76,27 @@ bool coreStart(void)
   /* Check if core configure was called. */
   if(settings != NULL)
   {
-			/* Initialize timer 0. */
-			if(!timerInit())
-			{
-				return false;
-			}
-  
-			/* Initialize PDC */
-			if(!pdcInit())
-			{
-					return false;
-			}
-  
-			/* Initialize ADC */
-			if(!adcInit())
-			{
-				return false;
-			}
-			/* Initialize DAC */
-			if(!dacInit())
-			{
-				return false;
-			}
-  }  
+    /* Initialize timer 0. */
+    if(!timerInit())
+    {
+      return false;
+    }
+    /* Initialize PDC */
+    if(!pdcInit())
+    {
+      return false;
+    }
+    /* Initialize ADC */
+    if(!adcInit())
+    {
+      return false;
+    }
+    /* Initialize DAC */
+    if(!dacInit())
+    {
+      return false;
+    }
+  }
   /* Return result. */
   return true;
 } /*** end of coreInit ***/
@@ -151,7 +152,7 @@ bool adcInit(void)
   
   /* Return result. */
   return true;
-}
+} /*** end of adcInit ***/
 
 /************************************************************************************//**
 ** \brief     Enables ADC channels and sets sequencer.
@@ -177,9 +178,7 @@ void adcSetChannels(void)
     /* Enable the specified ADC channel. */
     adc_enable_channel(ADC, ch2ch[settings->sequence[idx]]);
   }
-  
-}
-
+} /*** end of adcSetChannels ***/
 
 /************************************************************************************//**
 ** \brief
@@ -204,7 +203,6 @@ void adcSetRes(void)
   else                    ADC->ADC_MR &= ADC_MR_LOWRES;
 } /*** end of DacSetVal ***/
 
-
 /************************************************************************************//**
 ** \brief     Enable or disable ADC interrupt handler
 ** \param     ADC interrupt handler state
@@ -228,23 +226,7 @@ void adcHandler(bool state)
     adc_disable_interrupt(ADC, ADC_IER_RXBUFF);
     adc_disable_interrupt(ADC, ADC_IER_ENDRX);
   }
-}
-void dacHandler(bool state)
-{
-	  if(state)
-  {
-    /* Enable the DACC interrupts */
-    dacc_enable_interrupt(DACC, DACC_IMR_ENDTX);
-    /* Set Interrupt Priority */
-    NVIC_SetPriority(DACC_IRQn, DACC_IRQ_PRIORITY);
-    /* Enable External Interrupt */
-    NVIC_EnableIRQ(DACC_IRQn);
-  }
-  else
-  {
-    dacc_disable_interrupt(DACC, DACC_IMR_ENDTX);
-  }
-}
+} /*** end of adcHandler ***/
 
 /************************************************************************************//**
 ** \brief     Analog to digital converter interrupt service routine
@@ -270,7 +252,7 @@ void ADC_Handler(void)
       timerSetTimePeriod();
       settings->com->len = sprintf((char*)settings->com->buf, "Sample rate to high!\n\r");
       settings->com->printBuf(settings->com->buf, settings->com->len);
-    }      
+    }
   }
   
   if((status & ADC_ISR_ENDRX) == ADC_ISR_ENDRX)
@@ -278,8 +260,8 @@ void ADC_Handler(void)
     pdcAdcTransfetComplete = true;
     settings->com->printBuf(settings->syncBytes, 2);
   }
-    
-}
+  
+} /*** end of ADC_Handler ***/
 
 
 /****************************************************************************************
@@ -287,18 +269,18 @@ void ADC_Handler(void)
 ****************************************************************************************/
 /************************************************************************************//**
 ** \brief     Initialize DAC
+** \return    
 **
 ****************************************************************************************/
 bool dacInit(void)
 {
-  pmc_enable_periph_clk(ID_DACC); // enable clock for DACC
+  /* Enable clock for DACC */
+  pmc_enable_periph_clk(ID_DACC);
   
-  //begin DACC configuration by resetting the DACC hardware
-  /* Reset DACC registers */
+  /* Begin DACC configuration by resetting the DACC hardware, reset DACC registers. */
   dacc_reset(DACC);
   
-		//0=HalfMode 1=FullMode (Fullmode = 2 values at the same time to ADC FIFO buffer)
-		//For both channels
+  /* 0=HalfMode 1=FullMode (Fullmode = 2 values at the same time to ADC FIFO buffer) */
   dacc_set_transfer_mode(DACC,	1); 
   
   /* Power save:
@@ -306,40 +288,98 @@ bool dacInit(void)
    * fast wakeup - 0 (disabled) */
   dacc_set_power_save(DACC, 0, 0);
   
-		/*
-		 * \param p_dacc Pointer to a DACC instance.
-		 * \param ul_refresh Refresh period setting value.
-		 * \param ul_maxs Max speed mode configuration.
-		 * \param ul_startup Startup time selection.
-		*/
-		dacc_set_timing(DACC, 0x08, 0, 0x10); //TODO: Check if these values are OK
-		
-		//Flexible: Select both channels, TAG mode (12:15 bits in FIFO are channel selection)
+  /*
+   * \param p_dacc Pointer to a DACC instance.
+   * \param ul_refresh Refresh period setting value.
+   * \param ul_maxs Max speed mode configuration.
+   * \param ul_startup Startup time selection.
+   */
+  dacc_set_timing(DACC, 0x08, 0, 0x10); //TODO: Check if these values are OK
+  //Flexible: Select both channels, TAG mode (12:15 bits in FIFO are channel selection)
   dacc_enable_flexible_selection(DACC);
-   
-	/*Choose the TIO output from timer/counter channel 1 as the trigger.
-	Note that "channel 1" in this case refers only to channel 1 of timer/counter
-	module 0, not channel 1 of timer/counter module 1. Also, the datasheet
-	specifies only "TIO output" as the trigger source, without clarifying whether
-	this refers to TIOA or TIOB or both. With a little experimentation I determined
-	that only TIOA will trigger the DAC, not TIOB.*/
-  dacc_set_trigger(DACC, 2);
   
-		//Enable both channels
+  /*Choose the TIO output from timer/counter channel 1 as the trigger.
+  Note that "channel 1" in this case refers only to channel 1 of timer/counter
+  module 0, not channel 1 of timer/counter module 1. Also, the datasheet
+  specifies only "TIO output" as the trigger source, without clarifying whether
+  this refers to TIOA or TIOB or both. With a little experimentation I determined
+  that only TIOA will trigger the DAC, not TIOB.*/
+  dacc_set_trigger(DACC, 2);
+  /* Enable both channels */
   dacc_enable_channel(DACC, DACC_CHANNEL0);
   dacc_enable_channel(DACC, DACC_CHANNEL1);
-		
-		pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
-		
-  //dacc_analog_control defined in core.h. Used for slew rate etc.
-  //dacc_set_analog_control(DACC, DACC_ANALOG_CONTROL);
+  pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
   
   return true;
-}
+} /*** end of dacInit ***/
 
-void setDacTransferMode(uint8_t val){
-		dacc_set_transfer_mode(DACC,	val); 
-	};
+/************************************************************************************//**
+** \brief     
+** \param     
+**
+****************************************************************************************/
+void setDacTransferMode(uint8_t val)
+{
+  dacc_set_transfer_mode(DACC,	val);
+} /*** end of setDacTransferMode ***/
+
+/************************************************************************************//**
+** \brief     
+** \param       
+**
+****************************************************************************************/
+void dacHandler(bool state)
+{
+  if(state)
+  {
+    /* Enable the DACC interrupts */
+    dacc_enable_interrupt(DACC, DACC_IMR_ENDTX);
+    /* Set Interrupt Priority */
+    NVIC_SetPriority(DACC_IRQn, DACC_IRQ_PRIORITY);
+    /* Enable External Interrupt */
+    NVIC_EnableIRQ(DACC_IRQn);
+  }
+  else
+  {
+    /* Disable the DACC interrupts */
+    dacc_disable_interrupt(DACC, DACC_IMR_ENDTX);
+  }
+} /*** end of dacHandler ***/
+
+/************************************************************************************//**
+** \brief     
+**
+****************************************************************************************/
+void DACC_Handler(void)
+{
+  /* Confirm that the "end of transmit buffer interrupt" fired */
+  if (dacc_get_interrupt_status(DACC) & DACC_ISR_ENDTX)
+  {
+    settings->CurrentRepeats++;
+    /* if NumOfRepeats == 0 -> continuous mode */
+    if(settings->CurrentRepeats <= settings->NumOfRepeats || settings->NumOfRepeats == 0)
+    {
+      pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);	
+    }
+    else
+    {
+      dacTimerStop();
+      dacHandler(false);
+    }
+  }
+} /*** end of DACC_Handler ***/
+
+/************************************************************************************//**
+** \brief     
+**            Used to get DAC PDC pointer of the LUT. For changing LUT table on the fly
+** \return    
+**
+****************************************************************************************/
+uint32_t GetLutCntr(void)
+{
+	return pdc_read_tx_counter(daccPdc);
+} /*** end of GetLutCntr ***/
+
 
 /****************************************************************************************
 *                               P D C   U T I L I T I E S
@@ -367,22 +407,30 @@ bool pdcInit(void)
   }
   
   /* Get PDC registers base address. */
-//TODO: move this and init PDC after LUT table has been declared
+  //TODO: move this and init PDC after LUT table has been declared
   daccPdc = dacc_get_pdc_base(DACC);
   if(daccPdc == NULL) return FALSE;
   /* Initialize PDC packet. */
   daccPdcPacket.ul_addr = (uint32_t)settings->Lut;
   //daccPdcPacket.ul_size = settings->LutLength;
-		SetDacPdcLength();
+  SetDacPdcLength();
   //pdc_enable_transfer(daccPdc, PERIPH_PTCR_TXTEN);
-		pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);
+  pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);
   
   /* Return result. */
   return true;
-}
-void SetDacPdcLength(void){
-		daccPdcPacket.ul_size = settings->LutLength;
-}
+} /*** end of pdcInit ***/
+
+/************************************************************************************//**
+** \brief       
+**
+****************************************************************************************/
+void SetDacPdcLength(void)
+{
+  // Zakaj settings->LutLength ni kar pointer na daccPdcPacket.ul_size, kot pri ADC ???
+  daccPdcPacket.ul_size = settings->LutLength;
+} /*** end of SetDacPdcLength ***/
+
 
 /****************************************************************************************
 *                             T I M E R   U T I L I T I E S
@@ -394,39 +442,35 @@ void SetDacPdcLength(void){
 ****************************************************************************************/
 bool timerInit(void)
 {
-    /* Enable the specified peripheral clock. */
-	if(pmc_enable_periph_clk(ID_TC0))
-	{
-		return false;
-	}
-	if(pmc_enable_periph_clk(ID_TC1))
-	{
-		return false;
-	}
+  /* Enable the specified peripheral clock. */
+  if(pmc_enable_periph_clk(ID_TC0))
+  {
+    return false;
+  }
+  /* Enable the specified peripheral clock. */
+  if(pmc_enable_periph_clk(ID_TC1))
+  {
+    return false;
+  }
+  /* Configure TC for timer, waveform generation. */
+  tc_init(TC0, 0, TC_CMR_CPCTRG | TC_CMR_WAVE | TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
+  /* For DAC */
+  tc_init(TC0, 1, TC_CMR_TCCLKS_TIMER_CLOCK3 | //MCK/32 -> 1Mhz
+                  TC_CMR_WAVE |                //waveform mode
+                  TC_CMR_WAVSEL_UP_RC |        //count up, reset on RC match
+                  TC_CMR_ACPC_TOGGLE           //toggle TIOA on RC match
+  );
+  /* Sets timer counter period. */
+  if(!timerSetTimePeriod())
+  {
+    return false;
+  }
   
-	/* Configure TC for timer, waveform generation. */
-	tc_init(TC0, 0, TC_CMR_CPCTRG | TC_CMR_WAVE | TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
-	//For DAC
-	tc_init(TC0, 1,
-															TC_CMR_TCCLKS_TIMER_CLOCK3	//MCK/32 -> 1Mhz
-															|	TC_CMR_WAVE	//waveform mode
-															|	TC_CMR_WAVSEL_UP_RC	//count up, reset on RC match
-															|	TC_CMR_ACPC_TOGGLE	//toggle TIOA on RC match
-															);
-	
-	
-	/* Sets timer counter period. */
-	if(!timerSetTimePeriod())
-	{
-		return false;
-	}
-	
-	setDacPeriod();
+  setDacPeriod();
   
   /* Return result. */
   return true;
-}
-
+} /*** end of timerInit ***/
 
 /************************************************************************************//**
 ** \brief     Sets timer counter period
@@ -436,8 +480,6 @@ bool timerInit(void)
 ****************************************************************************************/
 bool timerSetTimePeriod(void)
 {
-  /* Set result to true. */
-  uint8_t result = true;
   uint32_t timerFreq;
   /* Initialize variables. */
   uint32_t ul_div = 0;
@@ -451,58 +493,81 @@ bool timerSetTimePeriod(void)
     return false;
   }
   
-		timerFreq = 1000000 / settings->acqusitionTime;
-		/* Get setting for timer counter. */
-		if(!tc_find_mck_divisor(timerFreq, ul_sysclk, &ul_div, &ul_tc_clks, ul_sysclk))
-		{
-				/* Update result */
-				return false;
-		}
+  timerFreq = 1000000 / settings->acqusitionTime;
+  /* Get setting for timer counter. */
+  if(!tc_find_mck_divisor(timerFreq, ul_sysclk, &ul_div, &ul_tc_clks, ul_sysclk))
+  {
+    /* Update result */
+    return false;
+  }
   
-		/* Disable timer counter clock. */
-		//TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKDIS;
-		/* Configure timer counter with a clock configuration */
-		TC0->TC_CHANNEL[0].TC_CMR = (TC0->TC_CHANNEL[0].TC_CMR & 0xFFFFFFF8) | ul_tc_clks;
-		/* Set timer counter compare value. */
-		TC0->TC_CHANNEL[0].TC_RA = ((ul_sysclk / ul_div) / timerFreq) / 2;
-		TC0->TC_CHANNEL[0].TC_RC = ((ul_sysclk / ul_div) / timerFreq) / 1;
-		/* Reset timer counter value. */
-		TC0->TC_CHANNEL[0].TC_CV = 0;
-		/* Enable timer counter clock. */
-		//TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
+  /* Disable timer counter clock. */
+  //TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKDIS;
+  /* Configure timer counter with a clock configuration */
+  TC0->TC_CHANNEL[0].TC_CMR = (TC0->TC_CHANNEL[0].TC_CMR & 0xFFFFFFF8) | ul_tc_clks;
+  /* Set timer counter compare value. */
+  TC0->TC_CHANNEL[0].TC_RA = ((ul_sysclk / ul_div) / timerFreq) / 2;
+  TC0->TC_CHANNEL[0].TC_RC = ((ul_sysclk / ul_div) / timerFreq) / 1;
+  /* Reset timer counter value. */
+  TC0->TC_CHANNEL[0].TC_CV = 0;
+  /* Enable timer counter clock. */
+  //TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
   
-		/* Return result. */
-		return true;
-} /*** end of timer_set_compare_time ***/
+  /* Return result. */
+  return true;
+} /*** end of timerSetTimePeriod ***/
 
-void setDacPeriod(void){
-			tc_write_rc(TC0, 1, settings->DacPeriod);	
-}
-//Called when user sends StartACQ
+/************************************************************************************//**
+** \brief      
+**
+****************************************************************************************/
+void setDacPeriod(void)
+{
+  tc_write_rc(TC0, 1, settings->DacPeriod);
+} /*** end of setDacPeriod ***/
+
+/************************************************************************************//**
+** \brief     
+**            Called when user sends StartACQ
+**
+****************************************************************************************/
 void timerStart(void)
 {
   adcHandler(true);
   tc_start(TC0, 0);
-}
-//Called when user sends StopACQ
+} /*** end of timerStart ***/
+
+/************************************************************************************//**
+** \brief     
+**            Called when user sends StopACQ
+**
+****************************************************************************************/
 void timerStop(void)
 {
   tc_stop(TC0, 0);
-}
+} /*** end of timerStop ***/
 
-//Called when user stops DAC
+/************************************************************************************//**
+** \brief     
+**            Called when user stops DAC
+**
+****************************************************************************************/
 void dacTimerStop(void)
 {
   tc_stop(TC0, 1);
-}
+} /*** end of dacTimerStop ***/
+
+/************************************************************************************//**
+** \brief     
+**
+****************************************************************************************/
 void dacTimerStart(void)
 {
   dacHandler(true);
   tc_start(TC0, 1);
-}
-uint32_t GetLutCntr(void){ //Used to get DAC PDC pointer of the LUT. For changing LUT table on the fly
-	 return pdc_read_tx_counter(daccPdc);
-}
+} /*** end of dacTimerStart ***/
+
+
 /****************************************************************************************
 *                        C A L L B A C K   F U N C T I O N S
 ****************************************************************************************/
@@ -510,7 +575,7 @@ uint32_t GetLutCntr(void){ //Used to get DAC PDC pointer of the LUT. For changin
 ** \brief     This is a callback function and it is called when tx buffer is empty.
 **
 ****************************************************************************************/
-void comTxEmptyCallback(uint8_t port)
+void comTxEmptyCallback(void)
 {
   if(pdcAdcTransfetComplete)
   {
@@ -560,40 +625,21 @@ void comTxEmptyCallback(uint8_t port)
         settings->com->printBuf(settings->com->buf, settings->com->len);
       }
       settings->com->len = sprintf((char*)settings->com->buf, "\n\r");
-      settings->com->printBuf(settings->com->buf, settings->com->len);      
+      settings->com->printBuf(settings->com->buf, settings->com->len);
     }
     pdcAdcTransfetComplete = false;
   }
-}
+} /*** end of comTxEmptyCallback ***/
 
-void DACC_Handler(void)
-{
-	//confirm that the "end of transmit buffer interrupt" fired
-	if (dacc_get_interrupt_status(DACC) & DACC_ISR_ENDTX)
-	{
-		settings->CurrentRepeats++;
-		if(settings->CurrentRepeats <= settings->NumOfRepeats || settings->NumOfRepeats == 0){ //if NumOfRepeats == 0 -> continuous mode
-				pdc_tx_init(daccPdc, &daccPdcPacket, &daccPdcPacket);	
-		}else{
-				dacTimerStop();
-				dacHandler(false);
-		}
-	}
-}
 /************************************************************************************//**
 ** \brief    
-** \return    Pointer to the core tx empty callback function. 
+** \return    Pointer to the core tx empty callback function.
 **
 ****************************************************************************************/
-void * coreTxEmptyCallBack(void)
+void * coreGetTxEmptyCallBackPtr(void)
 {
   return comTxEmptyCallback;
-}
-
-
-/****************************************************************************************
-*                        G E N E R I C   U T I L I T I E S
-****************************************************************************************/
+} /*** end of coreGetTxEmptyCallBackPtr ***/
 
 
 /************************************ end of core.c ***********************************/

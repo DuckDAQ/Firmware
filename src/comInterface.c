@@ -6,24 +6,25 @@
 /****************************************************************************************
 * Include files
 ****************************************************************************************/
-#include "comInterface.h"
-#include <asf.h>
-#include <stdio.h>
+#include <asf.h>                     /* Atmel Software Framework include file          */
+#include <stdio.h>                   /* Standard I/O functions.                        */
+#include "comInterface.h"            /* USB interface driver                           */
 
 
 /***************************************************************************************
 * Function prototypes
 ****************************************************************************************/
-uint8_t init(void *ptr);
-uint8_t available(void);
-uint8_t read(void);
-uint8_t write(const uint8_t *payload);
-uint8_t printbuf(uint8_t *bufPtr, uint16_t len);
+uint8_t init(void *ptr);             /* Initialize comunication interface              */
+uint8_t available(void);             /* Returns number of bytes in receive buffer      */
+uint8_t read(void);                  /* Reads single byte from receive buffer          */
+uint8_t write(uint8_t *payload);     /* Writes single byte to the interface            */
+uint8_t printbuf(uint8_t *bufPtr, uint16_t len);  /* Writes buffer to the interface    */
 
 
 /****************************************************************************************
 * Local data declarations
 ****************************************************************************************/
+/** \brief Comunication interface structure */
 COM_t comInterface =
 {
   init,
@@ -92,7 +93,7 @@ uint8_t read()
 ** \return    Return result.
 **
 ****************************************************************************************/
-uint8_t write(const uint8_t *payload)
+uint8_t write(uint8_t *payload)
 {
   return udi_cdc_write_buf(&payload, 1);
 } /*** end of write ***/
@@ -110,7 +111,7 @@ uint8_t printbuf(uint8_t *bufPtr, uint16_t len)
 
 
 /****************************************************************************************
-*                            C A L L B A C K   F U N C T I O N S
+*                        C A L L B A C K   F U N C T I O N S
 ****************************************************************************************/
 /************************************************************************************//**
 ** \brief     This is a callback function and it is called when we get new data.
@@ -118,11 +119,12 @@ uint8_t printbuf(uint8_t *bufPtr, uint16_t len)
 ****************************************************************************************/
 void udi_cdc_callback_rx_notify(uint8_t port)
 {
+  /* Only continue if callback function was linked. */
   if(comInterface.rxCallback != NULL)
   {
-    comInterface.rxCallback(port);
+    comInterface.rxCallback();
   }
-}
+} /*** end of udi_cdc_callback_rx_notify ***/
 
 
 /************************************************************************************//**
@@ -131,11 +133,12 @@ void udi_cdc_callback_rx_notify(uint8_t port)
 ****************************************************************************************/
 void udi_cdc_callback_tx_empty_notify(uint8_t port)
 {
+  /* Only continue if callback function was linked. */
   if(comInterface.txEmptyCallback != NULL)
   {
-    comInterface.txEmptyCallback(port);
+    comInterface.txEmptyCallback();
   }
-}
+} /*** end of udi_cdc_callback_tx_empty_notify ***/
 
 
 /******************************** end of comInterface.c ********************************/

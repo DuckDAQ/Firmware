@@ -9,113 +9,137 @@
 /****************************************************************************************
 * Include files
 ****************************************************************************************/
-#include <asf.h>
-#include "comInterface.h"
+#include <asf.h>                     /* Atmel Software Framework include file          */
+#include "comInterface.h"            /* USB interface driver                           */
+
 
 /****************************************************************************************
 * Macro definitions
 ****************************************************************************************/
+/* Logic states */
+/** \brief Logic state true value */
+#define FALSE               0
+/** \brief Logic state false value */
+#define TRUE                1
+
 /* ADC configuration */
-#define ADC_CLK           16000000   /* clock for ADC converter                        */
-#define ADC_IRQ_PRIORITY  4
-#define ADC_GAIN_0_5 0
-#define ADC_GAIN_1   1
-#define ADC_GAIN_2   2
-#define DAQ_CH_1_ADC_CH 4
-#define DAQ_CH_2_ADC_CH 6
-#define DAQ_CH_3_ADC_CH 0
-#define DAQ_CH_4_ADC_CH 2
-#define ADC_BUFFER_SIZE 256
+/** \brief clock for ADC converter */
+#define ADC_CLK             16000000
+/** \brief IRQ priority for timer */
+#define ADC_IRQ_PRIORITY    4
+/** \brief ADC gain 0.5 register value */
+#define ADC_GAIN_0_5        0
+/** \brief ADC gain 1.0 register value */
+#define ADC_GAIN_1          1
+/** \brief ADC gain 2.0 register value */
+#define ADC_GAIN_2          2
+/** \brief DAQ ADC chanell 1 to uC ADC chanell map */
+#define DAQ_CH_1_ADC_CH     4
+/** \brief DAQ ADC chanell 2 to uC ADC chanell map */
+#define DAQ_CH_2_ADC_CH     6
+/** \brief DAQ ADC chanell 3 to ADC uC chanell map */
+#define DAQ_CH_3_ADC_CH     0
+/** \brief DAQ ADC chanell 4 to ADC uC chanell map */
+#define DAQ_CH_4_ADC_CH     2
+/** \brief Size of ADC buffer for measurments */
+#define ADC_BUFFER_SIZE     256
 
 /* DAC configuration */
-#define DACC_CHANNEL0 0
-#define DACC_CHANNEL1 1
-#define DACC_ANALOG_CONTROL ( DACC_ACR_IBCTLCH0(0x02) | \
-                              DACC_ACR_IBCTLCH1(0x02) | \
-                              DACC_ACR_IBCTLDACCORE(0x01) )
-#define DACC_BUFFER_SIZE 1024
-#define DACC_IRQ_PRIORITY 4
+/** \brief DAQ DAC chanell 1 to uC DACC chanell map */
+#define DACC_CHANNEL0       0
+/** \brief DAQ DAC chanell 2 to uC DACC chanell map */
+#define DACC_CHANNEL1       1
+/** \brief Size of DAC buffer for look up table */
+#define DACC_BUFFER_SIZE    1024
+/** \brief IRQ priority for timer */
+#define DACC_IRQ_PRIORITY   4
 
 /* TIMER configuration */
-#define TIMER_CH            0        /* channel# of used timer                         */
-#define TIMER_IRQ_PRIORITY  4        /* IRQ priority for timer                         */
-#define TIMER_MAX           50000    /* maximum value of timer                         */
-#define TIMER_DIV           2        /* division factor to convert from microseconds   */
-#define US_TO_TC(x) x / TIMER_DIV    /* to TC counts                                   */
+/** \brief channel# of used timer */
+#define TIMER_CH            0
+/** \brief IRQ priority for timer */
+#define TIMER_IRQ_PRIORITY  4
+/** \brief maximum value of timer */
+#define TIMER_MAX           50000
+/** \brief division factor to convert from microseconds */
+#define TIMER_DIV           2
+/** \brief to TC counts */
+#define US_TO_TC(x)         (x / TIMER_DIV)
+/** \brief TC divisor used to find the lowest acceptable
+ *         timer frequency
+ */
+#define TC_DIV_FACTOR       0xFFFF         
 
-/* Logic states */
-#define FALSE 0
-#define TRUE  1
-
-/* communication mode defines */
-#define ASCII_MODE  0
-#define BIN_MODE    1
-
-/* TC divisor used to find the lowest acceptable timer frequency */
-#define TC_DIV_FACTOR 65536
-
-//#define FIRST_SYNC_BYTE 0x9F //159
-//#define SECOND_SYNC_BYTE 0xA3 //163
+/* Communication mode defines */
+/** \brief Parameter ASCII mode value */
+#define ASCII_MODE          0
+/** \brief Parameter BIN mode value */
+#define BIN_MODE            1
 
 
 /****************************************************************************************
 * Type definitions
 ****************************************************************************************/
-/* DAQ settings */
-typedef struct
+/** \brief DAQ structure with all the settings */
+typedef struct                       /* DAQ settings type                              */
 {
-  uint32_t acqusitionTime;          /* time period of acquisitions                    */
-  uint16_t acquisitionNbr;          /* number of consecutive acquisitions             */
-  uint16_t averaging;               /* number of averages                             */
-  uint8_t ADCgain[4];
-		uint8_t syncBytes[2];
-  uint8_t ADClowRes;
-  uint8_t DACgain;                  /* Gain of ADC                                    */
-  uint8_t sequence[4];              /* ADC channel read sequence. 0=no channel        */
-  uint8_t mode;                     /* Output mode. ASCII_MODE=0, BIN_MODE=1          */
-  uint32_t * blockSize;
-  COM_t *com;
-  
-  uint16_t DACval[2];               /* channel# of used timer                         */
-		
-		//This will define how fast new value will be inserted do DAC FIFO. 
-		uint16_t DacPeriod;	//Period of TC Channel1 is microseconds (Channel0 is for ADC)
-		
-		//Lut values for both channels 
-		//Even number indexes = one channel, odd num indexes = other channel
-		uint16_t Lut[DACC_BUFFER_SIZE*2]; //Buffer for LUT values. Will be used by PDC
-		uint16_t LutLength; //How many values does LUT have
-		uint16_t NumOfRepeats; //Number of LUT repeats. 0 = continuous mode. 65k max
-		uint16_t CurrentRepeats; //Current number of LUT repeats
+  uint32_t acqusitionTime;           /* Time period of acquisitions                    */
+  uint16_t acquisitionNbr;           /* Number of consecutive acquisitions             */
+  uint16_t averaging;                /* Number of averages                             */
+  uint8_t ADCgain[4];                /* ADC gain for each channel                      */
+  uint8_t syncBytes[2];              /* Sync bytes marking start of block              */
+  uint8_t ADClowRes;                 /* ADC enable low resoultion mode, 8-bit.         */
+  uint8_t sequence[4];               /* ADC channel read sequence. 0 = no channel      */
+  uint8_t mode;                      /* Output mode. ASCII_MODE=0, BIN_MODE=1          */
+  uint8_t DACgain;                   /* Gain of ADC                                    */
+  uint32_t * blockSize;              /* Size of block                                  */
+  uint16_t DACval[2];                /* DAC channel output value                       */
+  uint16_t DacPeriod;                /* This will define how fast new value will be
+                                      * inserted do DAC FIFO. Period of TC Channel1 is
+                                      * microseconds (Channel0 is for ADC)
+                                      */
+  uint16_t Lut[DACC_BUFFER_SIZE*2];  /* Buffer for LUT values. Will be used by PDC.
+                                      * Lut values for both channels. Even number
+                                      * indexes = one channel,
+                                      * odd num indexes = other channel
+                                      */
+  uint16_t LutLength;                /* How many values does LUT have                  */
+  uint16_t NumOfRepeats;             /* Number of LUT repeats, 0 = continuous, 65k max */
+  uint16_t CurrentRepeats;           /* Current number of LUT repeats                  */
+  COM_t *com;                        /* Pointer to the linked communication interface  */
 }daq_settings_t;
-
-//DAC settings
 
 
 /***************************************************************************************
 * Function prototypes
 ****************************************************************************************/
+/* Core functions */
 bool coreConfigure (daq_settings_t * master_settings);
 bool coreStart(void);
+
 /* Communication callback function pointer. */
-void * coreTxEmptyCallBack(void);
+void * coreGetTxEmptyCallBackPtr(void);
+
 /* Timer core handlers. */
 bool timerSetTimePeriod(void);
 void timerStart(void);
 void timerStop(void);
 void dacTimerStart(void);
 void dacTimerStop(void);
+
 /* ADC core handlers. */
 void adcHandler(bool state);
 void adcSetRes(void);
 void adcSetGain(void);
 void adcSetChannels(void);
 bool DacSetTimer(void);
+
 /* DAC core handlers. */
 void setDacPeriod(void);
 void SetDacPdcLength(void);
 void setDacTransferMode(uint8_t val);
 uint32_t GetLutCntr(void);
-  
+
+
 #endif /* CORE_H_ */
 /************************************ end of core.h ***********************************/

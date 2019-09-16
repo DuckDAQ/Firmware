@@ -6,8 +6,8 @@
 /****************************************************************************************
 * Include files
 ****************************************************************************************/
-#include <stdio.h>
-#include "parser.h"
+#include <stdio.h>                   /* Standard I/O functions.                        */
+#include "parser.h"                  /* Protocol parser with command handlers          */
 
 
 /***************************************************************************************
@@ -15,7 +15,7 @@
 ****************************************************************************************/
 /* Parser functions */
 bool getPar(uint8_t parCount, uint16_t timeout, int32_t *parPtr, COM_t *comInterface);
-/* Parameter handlers */
+/* Command handlers */
 bool startACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool stopACQ (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool setMode (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
@@ -26,15 +26,16 @@ bool setSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 bool setADCgain (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool setADClowRes (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool setBlockSize (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
-
 bool SetLutValues (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
-bool DacSetNumberOfRepeats (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+bool DacSetNumberOfRepeats(int32_t *parPtr,daq_settings_t *settings,COM_t *comInterface);
 bool DacSetFreq (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool DacSetLutLength (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool DacStop (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool DacStart (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool DacTransfer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
 bool GetLutCounter(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface);
+
+
 /************************************************************************************//**
 ** \brief     Submits a message to parser.
 ** \param     Command to parse, pointer to command structure, pointer to interface
@@ -57,6 +58,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* wait for termination of line */
       result = getPar(0, PARAMETER_TIMEOUT, NULL, comInterface);
       break;
+    
     case CMD_STOP_ACQ:
       /* Save command if needed later */
       parsedCMD->cmd = CMD_STOP_ACQ;
@@ -64,6 +66,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       parsedCMD->funcPtr = stopACQ;
       result = getPar(0, PARAMETER_TIMEOUT, NULL, comInterface);
       break;
+    
     case CMD_SET_MODE:
       /* Save command if needed later */
       parsedCMD->cmd = CMD_SET_MODE;
@@ -72,6 +75,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
+    
     case CMD_SET_SAMPLE_PERIOD:
       /* Save command if needed later */
       parsedCMD->cmd = CMD_SET_SAMPLE_PERIOD;
@@ -80,6 +84,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
+    
     case CMD_SET_AVERAGE_COUNT:
       /* Save command if needed later */
       parsedCMD->cmd =  CMD_SET_AVERAGE_COUNT;
@@ -88,6 +93,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
+    
     case CMD_SET_MEASURMENT_COUNT:
       /* Save command if needed later */
       parsedCMD->cmd =  CMD_SET_MEASURMENT_COUNT;
@@ -96,6 +102,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
+    
     case CMD_SET_ADC_LOW_RESOLUTION:
       /* Save command if needed later */
       parsedCMD->cmd =  CMD_SET_ADC_LOW_RESOLUTION;
@@ -104,6 +111,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
+    
     case CMD_SET_BLOCK_SIZE:
       /* Save command if needed later */
       parsedCMD->cmd =  CMD_SET_BLOCK_SIZE;
@@ -112,6 +120,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* Get parameters for command or wait for termination of line. */
       result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
+    
     case CMD_SET_ADC_GAIN:
       /* Save command if needed later */
       parsedCMD->cmd =  CMD_SET_ADC_GAIN;
@@ -120,6 +129,7 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* Get parameters for command or wait for termination of line. */
       result = getPar(2, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
+    
     case CMD_SET_SEQUENCER:
       /* Save command if needed later */
       parsedCMD->cmd =  CMD_SET_SEQUENCER;
@@ -128,73 +138,79 @@ bool parseCommand (uint8_t CMD, CMD_t *parsedCMD, COM_t *comInterface)
       /* Get parameters for command or wait for termination of line. */
       result = getPar(4, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
       break;
-	  
-	case CMD_SET_REPEAT_NUM:
-		/* Save command if needed later */
-		parsedCMD->cmd =  CMD_SET_REPEAT_NUM;
-		/* Set pointer to the command handler */
-		parsedCMD->funcPtr = DacSetNumberOfRepeats;
-		/* Get parameters for command or wait for termination of line. */
-		result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
-		break;
-	case CMD_SET_DAC_FREQ: //we set period in microseconds, but ok
-		/* Save command if needed later */
-		parsedCMD->cmd =  CMD_SET_DAC_FREQ;
-		/* Set pointer to the command handler */
-		parsedCMD->funcPtr = DacSetFreq;
-		/* Get parameters for command or wait for termination of line. */
-		result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
-		break;
-
-	case CMD_SET_DAC_LUT:
-		/* Save command if needed later */
-		parsedCMD->cmd =  CMD_SET_DAC_LUT;
-		/* Set pointer to the command handler */
-		parsedCMD->funcPtr = SetLutValues;
-		/* Get parameters for command or wait for termination of line. */
-		result = getPar(2, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
-		break;
-	case CMD_DAC_STOP:
-		/* Save command if needed later */
-		parsedCMD->cmd =  CMD_DAC_STOP;
-		/* Set pointer to the command handler */
-		parsedCMD->funcPtr = DacStop;
-		/* Get parameters for command or wait for termination of line. */
-		result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
-		break;
-	case CMD_DAC_START:
-		/* Save command if needed later */
-		parsedCMD->cmd =  CMD_DAC_START;
-		/* Set pointer to the command handler */
-		parsedCMD->funcPtr = DacStart;
-		/* Get parameters for command or wait for termination of line. */
-		result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
-		break;
-	case CMD_DAC_LUT_LENGTH:
-		/* Save command if needed later */
-		parsedCMD->cmd =  CMD_DAC_LUT_LENGTH;
-		/* Set pointer to the command handler */
-		parsedCMD->funcPtr = DacSetLutLength;
-		/* Get parameters for command or wait for termination of line. */
-		result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
-		break;
-			case CMD_DAC_TRANSFER_MODE:
-				/* Save command if needed later */
-				parsedCMD->cmd =  CMD_DAC_TRANSFER_MODE;
-				/* Set pointer to the command handler */
-				parsedCMD->funcPtr = DacTransfer;
-				/* Get parameters for command or wait for termination of line. */
-				result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
-				break;
-		case CMD_DAC_LUT_COUNTER:
-			/* Save command if needed later */
-			parsedCMD->cmd =  CMD_DAC_LUT_COUNTER;
-			/* Set pointer to the command handler */
-			parsedCMD->funcPtr = GetLutCounter;
-			/* Get parameters for command or wait for termination of line. */
-			result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
-			break;	
-	  	
+      
+    case CMD_SET_REPEAT_NUM:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_SET_REPEAT_NUM;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = DacSetNumberOfRepeats;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    
+    case CMD_SET_DAC_FREQ: //we set period in microseconds, but ok
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_SET_DAC_FREQ;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = DacSetFreq;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    
+    case CMD_SET_DAC_LUT:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_SET_DAC_LUT;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = SetLutValues;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(2, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    
+    case CMD_DAC_STOP:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_DAC_STOP;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = DacStop;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    
+    case CMD_DAC_START:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_DAC_START;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = DacStart;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    
+    case CMD_DAC_LUT_LENGTH:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_DAC_LUT_LENGTH;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = DacSetLutLength;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    
+    case CMD_DAC_TRANSFER_MODE:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_DAC_TRANSFER_MODE;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = DacTransfer;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(1, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;
+    
+    case CMD_DAC_LUT_COUNTER:
+      /* Save command if needed later */
+      parsedCMD->cmd =  CMD_DAC_LUT_COUNTER;
+      /* Set pointer to the command handler */
+      parsedCMD->funcPtr = GetLutCounter;
+      /* Get parameters for command or wait for termination of line. */
+      result = getPar(0, PARAMETER_TIMEOUT, parsedCMD->par, comInterface);
+      break;	
+    
     /* Command not supported */
     default:
       /* Reset command */
@@ -397,9 +413,10 @@ bool setSamplePeriod (int32_t *parPtr, daq_settings_t *settings, COM_t *comInter
       comInterface->len = sprintf((char*)comInterface->buf,
                                   "Sample period set to %u us\n\r",
                                   settings->acqusitionTime);
-						return TRUE;
-				}
+      return TRUE;
+    }
   }
+  
   return FALSE;
 } /*** end of SetSamplePeriod ***/
 
@@ -483,6 +500,7 @@ bool setSequencer (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
   return FALSE;
 } /*** end of SetSequencer ***/
 
+
 /************************************************************************************//**
 ** \brief     Set ADC gain
 ** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
@@ -561,14 +579,12 @@ bool setBlockSize (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
   {
     /* Set parameter */
     *(settings->blockSize) = (uint32_t)*(parPtr + 0);
-				//create new sync bytes for this blockSize
-				settings->syncBytes[0] = ((uint16_t)*(parPtr) & 0b1111111) | 0b10000000;
-				settings->syncBytes[1] = (((uint16_t)*(parPtr)>>7) & 0b1111111) | 0b10000000;
+    /* create new sync bytes for this blockSize */
+    settings->syncBytes[0] = ((uint16_t)*(parPtr) & 0b1111111) | 0b10000000;
+    settings->syncBytes[1] = (((uint16_t)*(parPtr)>>7) & 0b1111111) | 0b10000000;
     /* Print msg to inform user */
     comInterface->len = sprintf((char*)comInterface->buf, "Block size set to %u\n\r",
                                 (uint16_t)*(parPtr + 0));
-    /* Call core handler */
-    //pdcChangeAdcBlockSize();
     /* Set result */
     return TRUE;
   }
@@ -578,104 +594,192 @@ bool setBlockSize (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterfac
 } /*** end of setBlockSize ***/
 
 
+/************************************************************************************//**
+** \brief     SetLutValues
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
 bool SetLutValues (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
-				//1. Parameter: LUT position
-				//2. Parameter: LUT value
-				uint16_t location = (uint16_t)*(parPtr);
-				uint16_t value = (uint16_t)*(parPtr + 1);
-				if(location < 0 || location > (DAC_LUT_LOCATION_HIGHRANGE*2)+1 //Mustn't be below 0 or above 2047
-				|| value < DAC_VALUE_MIN || value > DAC_VALUE_MAX //Max cen now be much more since 12th bit is channel selection
-				) return false; //Parameter out of range
-				
-				/* Set parameters */
-				settings->Lut[location] = value;
-				/* Print msg to inform user */
-				comInterface->len = sprintf((char*)comInterface->buf,
-				"$"); //$ is command for WinForms to send new Lut value
-				return true;
-}
-//How many times will DAQ output LUT. -1 for continuous mode. Max 65500
-bool DacSetNumberOfRepeats (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
-{
-			//1. Parameter: LUT repeats
-			if(*parPtr < DAC_REPEAT_NUM_MIN || *parPtr > DAC_REPEAT_NUM_MAX
-			) return false; //Parameter out of range
-			
-			/* Set parameters */
-			settings->NumOfRepeats = (uint16_t)*(parPtr);
-			settings->CurrentRepeats = 0; //Reset current repeats
-			/* Print msg to inform user */
-			comInterface->len = sprintf((char*)comInterface->buf,
-			"LUT number of repeats was set to %u\n\r",
-			(uint16_t)*parPtr);
-			return true;
-}
+  /* 1. Parameter: LUT position */
+  uint16_t location = (uint16_t)*(parPtr);
+  /* 2. Parameter: LUT value */
+  uint16_t value = (uint16_t)*(parPtr + 1);
+  if( (location < 0) || (location > (DAC_LUT_LOCATION_HIGHRANGE * 2) + 1) ||
+      (value < DAC_VALUE_MIN) || (value > DAC_VALUE_MAX) )
+  {
+    return false; //Parameter out of range
+  }
+  /* Set parameters */
+  settings->Lut[location] = value;
+  /* Print msg to inform user, $ is command for WinForms to send new Lut value */
+  comInterface->len = sprintf((char*)comInterface->buf, "$");
+  /* Return true */
+  return true;
+} /*** end of SetLutValues ***/
 
+
+/************************************************************************************//**
+** \brief     DacSetNumberOfRepeats
+**            How many times will DAQ output LUT. -1 for continuous mode. Max 65500
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
+bool DacSetNumberOfRepeats (int32_t *parPtr,daq_settings_t *settings,COM_t *comInterface)
+{
+  if(*parPtr < DAC_REPEAT_NUM_MIN || *parPtr > DAC_REPEAT_NUM_MAX)
+  {
+    /* Parameter out of range */
+    return false;
+  }
+  /* Set parameters, 1. Parameter: LUT repeats */
+  settings->NumOfRepeats = (uint16_t)*(parPtr);
+  /* Reset current repeats */
+  settings->CurrentRepeats = 0;
+  /* Print msg to inform user */
+  comInterface->len = sprintf((char*)comInterface->buf,
+                              "LUT number of repeats was set to %u\n\r",
+                              (uint16_t)*parPtr);
+  /* Return true */
+  return true;
+} /*** end of DacSetNumberOfRepeats ***/
+
+
+/************************************************************************************//**
+** \brief     DacStart
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
 bool DacStart (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
-	dacTimerStart();
-	comInterface->len = sprintf((char*)comInterface->buf, "DAC timer started\n\r");
-	return true;
-}
+  /* Call core handler */
+  dacTimerStart();
+  /* Print msg to inform user */
+  comInterface->len = sprintf((char*)comInterface->buf, "DAC timer started\n\r");
+  /* Return true */
+  return true;
+} /*** end of DacStart ***/
 
+
+/************************************************************************************//**
+** \brief     DacStop
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
 bool DacStop (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
-	dacTimerStop();
-	comInterface->len = sprintf((char*)comInterface->buf, "DAC timer stopped\n\r");
-	return true;
-}
+  /* Call core handler */
+  dacTimerStop();
+  /* Print msg to inform user */
+  comInterface->len = sprintf((char*)comInterface->buf, "DAC timer stopped\n\r");
+  /* Return true */
+  return true;
+} /*** end of DacStop ***/
 
 
-//Timer period for DAC. With this period timer will be setting new values to DAC (with PDC)
+/************************************************************************************//**
+** \brief     DacSetFreq
+**            Timer period for DAC. With this period timer will be setting new values
+**            to DAC (with PDC).
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
 bool DacSetFreq (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
-		//1. Parameter: DAC period (in us)
-		if(*parPtr < DAC_PERIOD_MIN || *parPtr > DAC_PERIOD_MAX) 
-					return false; //Period mustn't be below 1(us) or above 65500(us). 
+  if(*parPtr < DAC_PERIOD_MIN || *parPtr > DAC_PERIOD_MAX)
+  {
+    /* Period mustn't be below 1(us) or above 65500(us). */
+    return false;
+  }
+  /* Set parameters, 1. Parameter: DAC period (in us) */
+  settings->DacPeriod = *parPtr;
+  /* Call core handler */
+  setDacPeriod();
+  /* Print msg to inform user */
+  comInterface->len = sprintf((char*)comInterface->buf, "Period set to: %u us\n\r",
+                               settings->DacPeriod);
+  /* Return true */
+  return true;
+} /*** end of DacSetFreq ***/
 
-		/* Set parameters */
-		settings->DacPeriod = *parPtr;
-		setDacPeriod();
-		/* Print msg to inform user */
-		comInterface->len = sprintf((char*)comInterface->buf,
-														"Period set to: %u us\n\r",
-														settings->DacPeriod);
-	 
-		return true;
-}
 
+/************************************************************************************//**
+** \brief     DacSetLutLength
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
 bool DacSetLutLength (int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
 {
-	//1. Parameter: LUT length
-  if(*(parPtr) < 1 || *(parPtr) > (DAC_LUT_LOCATION_HIGHRANGE+1)*2 //Mustn't be below 1 or above 2048
-					 ) return false; //Parameter out of range
-  
-	  /* Set parameters */
-	  settings->LutLength = (uint16_t)*(parPtr);
-			SetDacPdcLength();
-	  /* Print msg to inform user */
-	  comInterface->len = sprintf((char*)comInterface->buf,
-																															"$LUT length of was set to %u\n\r",
-																															settings->LutLength);
-			return true;
-}
-bool DacTransfer(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface){
-		//1. Parameter: Transfer mode.
-		//0=HalfMode / 1=FullMode (Fullmode: 2 values at the same time to ADC FIFO buffer)
-		//Fullmode for both channels simultaniously
-		if(*parPtr < 0 || *parPtr > 1) return FALSE;
-		setDacTransferMode(*parPtr);
-		 comInterface->len = sprintf((char*)comInterface->buf,
-																															"Dac transfer mode set to %u\n\r",
-																															*parPtr);
-		return true;
-}
-bool GetLutCounter(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface){
-		 comInterface->len = sprintf((char*)comInterface->buf,
-																															"#%u\n\r",
-																															GetLutCntr());
-		return true;
-	}
+  if(*(parPtr) < 1 || *(parPtr) > (DAC_LUT_LOCATION_HIGHRANGE+1)*2)
+  {
+    /* Parameter out of range, Mustn't be below 1 or above 2048 */
+    return false;
+  }
+  /* Set parameters, 1. Parameter: LUT length */
+  settings->LutLength = (uint16_t)*(parPtr);
+  /* Call core handler */
+  SetDacPdcLength();
+  /* Print msg to inform user */
+  comInterface->len = sprintf((char*)comInterface->buf,
+                              "$LUT length of was set to %u\n\r", settings->LutLength);
+  /* Return true */
+  return true;
+} /*** end of DacSetLutLength ***/
+
+
+/************************************************************************************//**
+** \brief     DacTransfer
+**            0=HalfMode / 1=FullMode
+**            Fullmode: 2 values at the same time to ADC FIFO buffer
+**            Fullmode for both channels simultaniously
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
+bool DacTransfer(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+{
+  if(*parPtr < 0 || *parPtr > 1)
+  {
+    /* Parameter out of range */
+    return FALSE;
+  }
+  /* Set parameters, 1. Parameter: Transfer mode. */
+  setDacTransferMode(*parPtr);
+  /* Print msg to inform user */
+  comInterface->len = sprintf((char*)comInterface->buf,
+                              "Dac transfer mode set to %u\n\r", (uint8_t)*parPtr);
+  /* Return true */
+  return true;
+} /*** end of DacTransfer ***/
+
+
+/************************************************************************************//**
+** \brief     GetLutCounter
+** \param     Pointer to par array in CMD, pointer to daq settings, pointer to interface
+**            module.
+** \return    True if successful, false otherwise.
+**
+****************************************************************************************/
+bool GetLutCounter(int32_t *parPtr, daq_settings_t *settings, COM_t *comInterface)
+{
+  /* Print msg to inform user */
+  comInterface->len = sprintf((char*)comInterface->buf, "#%u\n\r", GetLutCntr());
+  /* Return true */
+  return true;
+} /*** end of GetLutCounter ***/
+
 
 /*********************************** end of parser.c ***********************************/
